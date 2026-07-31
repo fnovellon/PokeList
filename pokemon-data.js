@@ -34,5 +34,4 @@ const POKEMON_GEN1 = [
 ].map((name, index) => ({
   id: index + 1,
   name,
-  sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${index + 1}.png`,
 }));

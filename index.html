@@ -9,6 +9,7 @@
 <body>
   <header class="app-header">
     <h1>PokéList <span class="subtitle">Génération 1</span> <span id="app-version" class="app-version"></span></h1>
+    <button id="settings-btn" class="settings-btn" aria-label="Réglages" title="Réglages">⚙️</button>
     <nav class="mode-nav">
       <button class="mode-btn active" data-mode="home">🏠 Accueil</button>
       <button class="mode-btn" data-mode="list">📋 Liste</button>
@@ -73,7 +74,6 @@
         />
         <div class="toolbar-buttons">
           <button type="submit">Valider</button>
-          <button type="button" id="quiz-reset">Réinitialiser</button>
         </div>
       </form>
       <p id="quiz-feedback" class="quiz-feedback" aria-live="polite"></p>
@@ -82,9 +82,60 @@
     </section>
   </main>
 
+  <div id="settings-overlay" class="settings-overlay" hidden>
+    <div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="settings-panel-header">
+        <h2 id="settings-title">Réglages</h2>
+        <button id="settings-close" class="settings-close" aria-label="Fermer">✕</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>Thème</h3>
+        <div class="settings-options">
+          <button class="settings-option" data-setting="theme" data-value="auto">🔄 Auto</button>
+          <button class="settings-option" data-setting="theme" data-value="light">☀️ Clair</button>
+          <button class="settings-option" data-setting="theme" data-value="dark">🌙 Sombre</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Taille des cartes</h3>
+        <div class="settings-options">
+          <button class="settings-option" data-setting="cardSize" data-value="small">Petite</button>
+          <button class="settings-option" data-setting="cardSize" data-value="medium">Moyenne</button>
+          <button class="settings-option" data-setting="cardSize" data-value="large">Grande</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Sprites</h3>
+        <label class="settings-toggle">
+          <input type="checkbox" id="setting-animated" />
+          <span class="switch"></span>
+          <span>🎞️ Sprites animés</span>
+        </label>
+        <label class="settings-toggle">
+          <input type="checkbox" id="setting-shiny" />
+          <span class="switch"></span>
+          <span>✨ Variante Shiny</span>
+        </label>
+      </div>
+
+      <div class="settings-section">
+        <h3>Réinitialiser la progression</h3>
+        <div class="settings-options">
+          <button id="settings-reset-list" class="settings-danger">Mode Liste</button>
+          <button id="settings-reset-quiz" class="settings-danger">Mode Quiz</button>
+          <button id="settings-reset-all" class="settings-danger">Tout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="version.js"></script>
   <script src="pokemon-data.js"></script>
   <script src="matching.js"></script>
+  <script src="settings.js"></script>
   <script src="list.js"></script>
   <script src="quiz.js"></script>
   <script src="app.js"></script>

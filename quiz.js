@@ -3,7 +3,6 @@ const QUIZ_STORAGE_KEY = "pokelist-found-gen1";
 const quizListEl = document.getElementById("quiz-list");
 const quizFormEl = document.getElementById("quiz-form");
 const quizInputEl = document.getElementById("quiz-input");
-const quizResetBtn = document.getElementById("quiz-reset");
 const quizProgressFillEl = document.getElementById("quiz-progress-fill");
 const quizProgressTextEl = document.getElementById("quiz-progress-text");
 const quizFeedbackEl = document.getElementById("quiz-feedback");
@@ -64,7 +63,7 @@ function renderQuizList() {
       <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
       <img
         class="pokemon-sprite quiz-sprite"
-        src="${pokemon.sprite}"
+        src="${getSpriteUrl(pokemon.id)}"
         alt="${isFound ? pokemon.name : "Pokémon non découvert"}"
         loading="lazy"
       />
@@ -109,15 +108,6 @@ quizFormEl.addEventListener("submit", (event) => {
   }
 
   quizInputEl.focus();
-});
-
-quizResetBtn.addEventListener("click", () => {
-  if (!confirm("Réinitialiser ta progression du quiz ?")) return;
-  found = new Set();
-  saveFound(found);
-  renderQuizList();
-  updateQuizProgress();
-  showQuizFeedback("", null);
 });
 
 renderQuizList();

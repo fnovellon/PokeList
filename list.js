@@ -68,7 +68,7 @@ function renderList() {
     li.innerHTML = `
       <label for="${checkboxId}" class="pokemon-label">
         <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
-        <img class="pokemon-sprite" src="${pokemon.sprite}" alt="${pokemon.name}" loading="lazy" />
+        <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${pokemon.name}" loading="lazy" />
         <span class="pokemon-name">${pokemon.name}</span>
         <span class="check-badge" aria-hidden="true">✓</span>
       </label>
