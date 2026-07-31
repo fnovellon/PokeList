@@ -61,6 +61,7 @@ updateHomeStats();
 const sharedQuizParams = new URLSearchParams(location.search);
 if (sharedQuizParams.has("minutes")) {
   applySharedQuizSettings(sharedQuizParams);
+  syncTypesAvailability();
   goToMode("quiz");
   history.replaceState(null, "", location.pathname);
 }

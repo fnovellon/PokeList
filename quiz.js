@@ -138,7 +138,10 @@ function renderQuizPlaying() {
 function addFoundChip(pokemon) {
   const chip = document.createElement("span");
   chip.className = "found-chip";
-  chip.textContent = `${formatNumber(pokemon.id)} ${pokemon.name}`;
+  chip.innerHTML = `
+    <img class="found-chip-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${pokemon.name}" loading="lazy" />
+    <span>${formatNumber(pokemon.id)} ${pokemon.name}</span>
+  `;
   quizFoundChipsEl.appendChild(chip);
 }
 
@@ -253,6 +256,17 @@ quizTimeOptionBtns.forEach((btn) => {
     quizTimeOptionBtns.forEach((b) => b.classList.toggle("active", b === btn));
   });
 });
+
+// L'aide "types" n'a de sens que si la grille (qui affiche les badges) est
+// elle-même activée.
+function syncTypesAvailability() {
+  const gridOn = quizOptGridEl.checked;
+  quizOptTypesEl.disabled = !gridOn;
+  if (!gridOn) quizOptTypesEl.checked = false;
+}
+
+quizOptGridEl.addEventListener("change", syncTypesAvailability);
+syncTypesAvailability();
 
 quizStartBtn.addEventListener("click", startQuiz);
 quizEndBtn.addEventListener("click", endQuiz);

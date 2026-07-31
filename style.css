@@ -658,6 +658,12 @@ body[data-card-size="small"] .pokemon-card {
   cursor: pointer;
 }
 
+.settings-toggle:has(input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .settings-toggle input {
   position: absolute;
   width: 1px;
@@ -795,7 +801,10 @@ body[data-card-size="small"] .pokemon-card {
 }
 
 .found-chip {
-  padding: 0.35rem 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.25rem;
   border-radius: 999px;
   background: var(--caught-bg);
   border: 1px solid var(--caught-border);
@@ -803,6 +812,15 @@ body[data-card-size="small"] .pokemon-card {
   font-size: 0.85rem;
   font-weight: 600;
   animation: chip-pop 0.3s ease;
+}
+
+.found-chip-sprite {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--bg);
+  flex-shrink: 0;
 }
 
 @keyframes chip-pop {
