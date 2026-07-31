@@ -18,15 +18,18 @@ function normalize(str) {
     .replace(/[^a-z0-9]/g, "");
 }
 
-function levenshtein(a, b) {
-  const rows = a.length + 1;
-  const cols = b.length + 1;
+// Distance d'édition entre `query` et le préfixe de `target` qui lui ressemble le
+// plus (les caractères restants de `target` ne sont pas comptés), pour tolérer
+// une saisie partielle en plus des fautes de frappe (ex: "draco" ~ "dracaufeu").
+function prefixEditDistance(query, target) {
+  const rows = query.length + 1;
+  const cols = target.length + 1;
   const dist = Array.from({ length: rows }, (_, i) => [i, ...Array(cols - 1).fill(0)]);
   for (let j = 0; j < cols; j++) dist[0][j] = j;
 
   for (let i = 1; i < rows; i++) {
     for (let j = 1; j < cols; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const cost = query[i - 1] === target[j - 1] ? 0 : 1;
       dist[i][j] = Math.min(
         dist[i - 1][j] + 1,
         dist[i][j - 1] + 1,
@@ -35,7 +38,7 @@ function levenshtein(a, b) {
     }
   }
 
-  return dist[rows - 1][cols - 1];
+  return Math.min(...dist[rows - 1]);
 }
 
 POKEMON_GEN1.forEach((p) => {
@@ -52,10 +55,11 @@ function matchesQuery(pokemon, rawQuery) {
   if (!normQuery) return false;
   if (pokemon.normalizedName.includes(normQuery)) return true;
 
-  // Tolère les fautes de frappe / sonorités proches (ex: "bulbizare" -> Bulbizarre)
+  // Tolère les fautes de frappe / saisies partielles (ex: "bulbizare" -> Bulbizarre,
+  // "draco" -> Dracaufeu)
   if (normQuery.length >= 4) {
     const threshold = Math.max(1, Math.floor(normQuery.length * 0.3));
-    return levenshtein(normQuery, pokemon.normalizedName) <= threshold;
+    return prefixEditDistance(normQuery, pokemon.normalizedName) <= threshold;
   }
 
   return false;
