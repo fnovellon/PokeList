@@ -366,21 +366,45 @@ function showShareFeedback(message) {
   }, 3000);
 }
 
+// Une pique ou un compliment selon le score, pour donner un peu de caractère
+// au message partagé.
+function scorePhraseFor(percent) {
+  if (percent === 100) return "🏆 151/151 : le Prof. Chen peut fermer le labo, j'ai tout vu !";
+  if (percent >= 90) return "🔥 Quasi Maître Pokémon, il ne me manque presque rien !";
+  if (percent >= 75) return "😎 Un sacré Dresseur, Team Rocket ferait mieux de fuir.";
+  if (percent >= 50) return "🎯 Pas mal, mais la Ligue Pokémon peut encore attendre.";
+  if (percent >= 25) return "🐢 Un Ramoloss aurait fait presque aussi bien que moi...";
+  if (percent > 0) return "🙈 Le Prof. Chen me regarde avec déception.";
+  return "🥚 Même un Œuf s'en serait mieux sorti.";
+}
+
+function elapsedMinutesLabel(ms) {
+  const minutes = Math.round(ms / 60000);
+  return minutes < 1 ? "< 1" : String(minutes);
+}
+
 quizShareBtn.addEventListener("click", async () => {
   const total = POKEMON_GEN1.length;
   const count = quizFound.size;
   const percent = Math.round((count / total) * 100);
-  // Le temps écoulé n'est intéressant à partager que si la partie ne s'est pas
-  // arrêtée simplement parce que le temps imparti était écoulé.
-  const timeLabel = quizEndedByTimeout
-    ? `en ${quizMinutesUsed} min`
-    : `en ${formatElapsed(quizElapsedMs)}`;
-  const text = `J'ai trouvé ${percent}% des 151 Pokémon Génération 1 (${count}/${total}) ${timeLabel} sur PokéList ! Bats mon score :`;
+  // Le temps affiché reflète la performance réelle, sauf si la partie s'est
+  // arrêtée simplement parce que le temps imparti était écoulé (auquel cas
+  // c'est juste la durée configurée).
+  const minutesLabel = quizEndedByTimeout
+    ? String(quizMinutesUsed)
+    : elapsedMinutesLabel(quizElapsedMs);
   const url = buildQuizShareUrl();
+
+  const text = [
+    scorePhraseFor(percent),
+    `${count}/151 Pokémon de Gen1 (${percent}%)`,
+    `En seulement ${minutesLabel} min`,
+    `Tente de me battre sur ${url}`,
+  ].join("\n");
 
   if (navigator.share) {
     try {
-      await navigator.share({ title: "PokéList - Quiz Génération 1", text, url });
+      await navigator.share({ title: "PokéList - Quiz Génération 1", text });
     } catch {
       // Partage annulé par l'utilisateur : rien à faire.
     }
@@ -388,8 +412,8 @@ quizShareBtn.addEventListener("click", async () => {
   }
 
   try {
-    await navigator.clipboard.writeText(`${text} ${url}`);
-    showShareFeedback("Lien copié dans le presse-papiers !");
+    await navigator.clipboard.writeText(text);
+    showShareFeedback("Message copié dans le presse-papiers !");
   } catch {
     showShareFeedback("Impossible de copier le lien.");
   }
