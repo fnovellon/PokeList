@@ -15,7 +15,9 @@ function normalize(str) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
-    .replace(/[^a-z0-9]/g, "");
+    .replace(/[^a-z0-9]/g, "")
+    // "y" se prononce comme "i" en français (ex: "psi" ~ "Psykokwak")
+    .replace(/y/g, "i");
 }
 
 // Distance d'édition entre `query` et le préfixe de `target` qui lui ressemble le
