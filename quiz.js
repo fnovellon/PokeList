@@ -56,7 +56,6 @@ let quizDeadline = null; // timestamp ms, ou null si infini
 let quizShowTypes = false;
 let quizShowGrid = true;
 let quizShowHints = false;
-let quizHintLevel = 0;
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
 let quizElapsedMs = 0;
@@ -101,16 +100,12 @@ function typeBadgesHtml(pokemon) {
   return `<div class="type-badges">${badges}</div>`;
 }
 
-const HINT_INTERVAL_MS = 20000;
-const HINT_MAX_LETTERS = 4;
-
-// Ne dévoile jamais tout le nom : on garde au moins un "?" même pour les
-// Pokémon les plus courts (Mew, Abo...).
+// Affiche la première lettre du nom si l'aide est activée (jamais le nom
+// entier, même pour les Pokémon les plus courts comme Mew ou Abo).
 function hintedPlaceholder(pokemon) {
-  if (!quizShowHints || quizHintLevel === 0) return "?????";
-  const revealCount = Math.min(quizHintLevel, pokemon.name.length - 1);
-  const revealed = pokemon.name.slice(0, revealCount);
-  const hidden = "?".repeat(Math.max(1, pokemon.name.length - revealCount));
+  if (!quizShowHints) return "?????";
+  const revealed = pokemon.name.slice(0, 1);
+  const hidden = "?".repeat(Math.max(1, pokemon.name.length - 1));
   return `<span class="hint-revealed">${revealed}</span>${hidden}`;
 }
 
@@ -221,23 +216,9 @@ function formatElapsed(elapsedMs) {
   return padTime(Math.max(0, Math.floor(elapsedMs / 1000)));
 }
 
-// Dévoile une lettre de plus, pour tous les Pokémon encore cachés, toutes les
-// HINT_INTERVAL_MS — seulement si l'aide "Indice progressif" est activée.
-function maybeAdvanceHints() {
-  if (!quizShowHints) return;
-  const elapsedMs = Date.now() - quizStartedAt;
-  const level = Math.min(HINT_MAX_LETTERS, Math.floor(elapsedMs / HINT_INTERVAL_MS));
-  if (level !== quizHintLevel) {
-    quizHintLevel = level;
-    if (quizShowGrid) renderQuizPlaying();
-  }
-}
-
 // Le quiz a toujours un chrono : compte à rebours si un temps est imparti,
 // sinon chronomètre qui compte le temps écoulé (mode Infini).
 function tickTimer() {
-  maybeAdvanceHints();
-
   if (quizDeadline === null) {
     quizTimerEl.textContent = formatElapsed(Date.now() - quizStartedAt);
     quizTimerEl.classList.remove("warning");
@@ -271,7 +252,6 @@ function startQuiz() {
   quizShowTypes = quizOptTypesEl.checked;
   quizShowGrid = quizOptGridEl.checked;
   quizShowHints = quizOptHintsEl.checked;
-  quizHintLevel = 0;
   quizPhase = "playing";
 
   quizSetupEl.hidden = true;
