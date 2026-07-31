@@ -405,16 +405,6 @@ function elapsedMinutesLabel(ms) {
   return minutes < 1 ? "< 1" : String(minutes);
 }
 
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
 function roundRectPath(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -442,9 +432,10 @@ function wrapCenteredText(ctx, text, centerX, y, maxWidth, lineHeight) {
   lines.forEach((l, i) => ctx.fillText(l, centerX, y + i * lineHeight));
 }
 
-// Génère une image "carte de résultat" (façon aperçu de partage social),
-// avec quelques sprites des Pokémon trouvés en bas si le chargement réussit.
-async function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
+// Génère une image "carte de résultat" (façon aperçu de partage social).
+// Purement synchrone (aucune image externe à charger), pour rester rapide et
+// fiable même hors-ligne.
+function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
   const width = 1200;
   const height = 630;
   const canvas = document.createElement("canvas");
@@ -464,59 +455,29 @@ async function buildResultCardBlob({ percent, count, total, minutesLabel, phrase
   ctx.fill();
 
   const centerX = width / 2;
+  const centerY = height / 2;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
 
   ctx.fillStyle = "#1c1f2a";
-  ctx.font = "700 30px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText("🎮 PokéList — Quiz Génération 1", centerX, pad + 58);
+  ctx.font = "700 32px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText("🎮 PokéList — Quiz Génération 1", centerX, pad + 70);
 
   ctx.fillStyle = "#3b6ce0";
-  ctx.font = "800 148px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText(`${percent}%`, centerX, pad + 230);
+  ctx.font = "800 168px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`${percent}%`, centerX, centerY + 30);
 
   ctx.fillStyle = "#676c7c";
-  ctx.font = "600 32px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText(`${count} / ${total} Pokémon trouvés`, centerX, pad + 278);
+  ctx.font = "600 36px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`${count} / ${total} Pokémon trouvés`, centerX, centerY + 90);
 
   ctx.fillStyle = "#3b6ce0";
-  ctx.font = "700 28px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText(`⏱️ En seulement ${minutesLabel} min`, centerX, pad + 322);
+  ctx.font = "700 30px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`⏱️ En seulement ${minutesLabel} min`, centerX, centerY + 140);
 
   ctx.fillStyle = "#1c1f2a";
-  ctx.font = "500 26px 'Segoe UI', Arial, sans-serif";
-  wrapCenteredText(ctx, phrase, centerX, pad + 372, width - pad * 2 - 100, 34);
-
-  const foundIds = [...quizFound].sort((a, b) => a - b);
-  if (foundIds.length > 0) {
-    const n = Math.min(8, foundIds.length);
-    const picks = [...new Set(Array.from({ length: n }, (_, i) => foundIds[Math.floor((i / n) * foundIds.length)]))];
-
-    try {
-      const images = await Promise.all(picks.map((id) => loadImage(getSpriteUrl(id))));
-      const spriteSize = 64;
-      const gap = 18;
-      const rowWidth = images.length * spriteSize + (images.length - 1) * gap;
-      let sx = centerX - rowWidth / 2;
-      const sy = height - pad - spriteSize - 26;
-
-      images.forEach((img) => {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(sx + spriteSize / 2, sy + spriteSize / 2, spriteSize / 2, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.fillStyle = "#f4f6fb";
-        ctx.fill();
-        ctx.clip();
-        ctx.drawImage(img, sx, sy, spriteSize, spriteSize);
-        ctx.restore();
-        sx += spriteSize + gap;
-      });
-    } catch {
-      // Le chargement d'un sprite a échoué (ex: hors-ligne) : on partage la
-      // carte sans la bande d'images plutôt que d'échouer tout le partage.
-    }
-  }
+  ctx.font = "500 27px 'Segoe UI', Arial, sans-serif";
+  wrapCenteredText(ctx, phrase, centerX, centerY + 195, width - pad * 2 - 100, 36);
 
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
@@ -545,33 +506,40 @@ quizShareBtn.addEventListener("click", async () => {
   quizShareBtn.disabled = true;
   quizShareBtn.textContent = "⏳ Génération...";
 
+  // Toujours copier le message (avec le lien) dans le presse-papiers : certaines
+  // cibles de partage natif ignorent le texte dès qu'une image est jointe, donc
+  // on ne compte pas uniquement sur navigator.share pour transmettre le lien.
+  let textCopied = false;
+  try {
+    await navigator.clipboard.writeText(text);
+    textCopied = true;
+  } catch {
+    // Presse-papiers indisponible (contexte non sécurisé, permissions...).
+  }
+
   try {
     const blob = await buildResultCardBlob({ percent, count, total, minutesLabel, phrase });
     const file = blob && new File([blob], "pokelist-quiz.png", { type: "image/png" });
 
+    // Un seul appel à navigator.share, jamais deux à la suite : un deuxième
+    // appel après annulation du premier pouvait donner l'impression que
+    // l'image était partagée/collée en double.
     if (file && navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ title: "PokéList - Quiz Génération 1", text, files: [file] });
-        return;
-      } catch {
-        // Partage (avec image) annulé : on retente sans image ci-dessous.
-      }
+      await navigator.share({ title: "PokéList - Quiz Génération 1", text, files: [file] });
+      showShareFeedback(textCopied ? "Image partagée (lien aussi copié) !" : "Image partagée !");
+      return;
     }
 
     if (navigator.share) {
-      try {
-        await navigator.share({ title: "PokéList - Quiz Génération 1", text });
-        return;
-      } catch {
-        // Partage annulé par l'utilisateur : rien à faire.
-        return;
-      }
+      await navigator.share({ title: "PokéList - Quiz Génération 1", text });
+      return;
     }
 
-    await navigator.clipboard.writeText(text);
-    showShareFeedback("Message copié dans le presse-papiers !");
+    showShareFeedback(textCopied ? "Message copié dans le presse-papiers !" : "Impossible de copier le lien.");
   } catch {
-    showShareFeedback("Impossible de partager le résultat.");
+    // Partage annulé ou échoué : le message (avec le lien) reste de toute
+    // façon disponible dans le presse-papiers grâce à la copie faite plus haut.
+    if (textCopied) showShareFeedback("Partage annulé — le message reste copié dans le presse-papiers.");
   } finally {
     quizShareBtn.disabled = false;
     quizShareBtn.textContent = originalLabel;
