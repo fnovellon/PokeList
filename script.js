@@ -62,8 +62,9 @@ function renderList() {
         <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
         <img class="pokemon-sprite" src="${pokemon.sprite}" alt="${pokemon.name}" loading="lazy" />
         <span class="pokemon-name">${pokemon.name}</span>
+        <span class="check-badge" aria-hidden="true">✓</span>
       </label>
-      <input type="checkbox" id="${checkboxId}" ${caught.has(pokemon.id) ? "checked" : ""} />
+      <input type="checkbox" class="pokemon-checkbox" id="${checkboxId}" ${caught.has(pokemon.id) ? "checked" : ""} />
     `;
 
     const checkbox = li.querySelector("input");
