@@ -269,6 +269,7 @@ main {
 
 .quiz-card {
   padding-bottom: 0.75rem;
+  scroll-margin-top: var(--quiz-sticky-offset, 160px);
 }
 
 .quiz-sprite {
