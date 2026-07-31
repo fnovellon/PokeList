@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PokéList - Génération 1</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>PokéList <span class="subtitle">Génération 1</span></h1>
+    <div class="progress">
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <span id="progress-text">0 / 151 attrapés</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Rechercher un Pokémon (nom ou numéro)..." />
+      <div class="toolbar-buttons">
+        <button id="check-all">Tout cocher</button>
+        <button id="uncheck-all">Tout décocher</button>
+      </div>
+    </div>
+
+    <ul id="pokemon-list" class="pokemon-list"></ul>
+  </main>
+
+  <script src="pokemon-data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
