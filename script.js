@@ -6,6 +6,9 @@ const progressFillEl = document.getElementById("progress-fill");
 const progressTextEl = document.getElementById("progress-text");
 const checkAllBtn = document.getElementById("check-all");
 const uncheckAllBtn = document.getElementById("uncheck-all");
+const versionEl = document.getElementById("app-version");
+
+if (versionEl) versionEl.textContent = APP_VERSION;
 
 function loadCaught() {
   try {
