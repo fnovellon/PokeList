@@ -41,6 +41,7 @@ const quizTimerEl = document.getElementById("quiz-timer");
 
 const quizRecapStatEl = document.getElementById("quiz-recap-stat");
 const quizRecapTextEl = document.getElementById("quiz-recap-text");
+const quizRecapTimeEl = document.getElementById("quiz-recap-time");
 const quizRecapListEl = document.getElementById("quiz-recap-list");
 const quizReplayBtn = document.getElementById("quiz-replay-btn");
 const quizHomeBtn = document.getElementById("quiz-home-btn");
@@ -54,6 +55,9 @@ let quizDeadline = null; // timestamp ms, ou null si infini
 let quizShowTypes = false;
 let quizShowGrid = true;
 let quizMinutesUsed = 15;
+let quizStartedAt = null;
+let quizElapsedMs = 0;
+let quizEndedByTimeout = false;
 let quizTimerHandle = null;
 let justFoundId = null;
 
@@ -152,6 +156,15 @@ function renderRecap() {
   quizRecapStatEl.textContent = `${percent}%`;
   quizRecapTextEl.textContent = `${count} / ${total} Pokémon trouvés`;
 
+  // Le temps n'est un résultat intéressant que si la partie ne s'est pas
+  // arrêtée simplement parce que le temps imparti était écoulé.
+  if (quizEndedByTimeout) {
+    quizRecapTimeEl.hidden = true;
+  } else {
+    quizRecapTimeEl.hidden = false;
+    quizRecapTimeEl.textContent = `⏱️ Temps : ${formatElapsed(quizElapsedMs)}`;
+  }
+
   quizRecapListEl.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
@@ -178,31 +191,41 @@ function selectedMinutes() {
   return Number(active?.dataset.minutes ?? 15);
 }
 
-function formatTimer(remainingMs) {
-  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+function padTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function formatCountdown(remainingMs) {
+  return padTime(Math.max(0, Math.ceil(remainingMs / 1000)));
+}
+
+function formatElapsed(elapsedMs) {
+  return padTime(Math.max(0, Math.floor(elapsedMs / 1000)));
+}
+
+// Le quiz a toujours un chrono : compte à rebours si un temps est imparti,
+// sinon chronomètre qui compte le temps écoulé (mode Infini).
 function tickTimer() {
-  if (quizDeadline === null) return;
+  if (quizDeadline === null) {
+    quizTimerEl.textContent = formatElapsed(Date.now() - quizStartedAt);
+    quizTimerEl.classList.remove("warning");
+    return;
+  }
+
   const remainingMs = quizDeadline - Date.now();
-  quizTimerEl.textContent = formatTimer(remainingMs);
+  quizTimerEl.textContent = formatCountdown(remainingMs);
   quizTimerEl.classList.toggle("warning", remainingMs <= 30000);
-  if (remainingMs <= 0) endQuiz();
+  if (remainingMs <= 0) {
+    quizEndedByTimeout = true;
+    endQuiz();
+  }
 }
 
 function startTimer() {
   clearInterval(quizTimerHandle);
   quizTimerHandle = null;
-
-  if (quizDeadline === null) {
-    quizTimerEl.textContent = "∞";
-    quizTimerEl.classList.remove("warning");
-    return;
-  }
-
   tickTimer();
   quizTimerHandle = setInterval(tickTimer, 250);
 }
@@ -212,7 +235,9 @@ function startQuiz() {
   justFoundId = null;
   const minutes = selectedMinutes();
   quizMinutesUsed = minutes;
-  quizDeadline = minutes > 0 ? Date.now() + minutes * 60000 : null;
+  quizStartedAt = Date.now();
+  quizEndedByTimeout = false;
+  quizDeadline = minutes > 0 ? quizStartedAt + minutes * 60000 : null;
   quizShowTypes = quizOptTypesEl.checked;
   quizShowGrid = quizOptGridEl.checked;
   quizPhase = "playing";
@@ -234,6 +259,7 @@ function startQuiz() {
 }
 
 function endQuiz() {
+  quizElapsedMs = Date.now() - quizStartedAt;
   clearInterval(quizTimerHandle);
   quizTimerHandle = null;
   quizPhase = "recap";
@@ -269,7 +295,10 @@ quizOptGridEl.addEventListener("change", syncTypesAvailability);
 syncTypesAvailability();
 
 quizStartBtn.addEventListener("click", startQuiz);
-quizEndBtn.addEventListener("click", endQuiz);
+quizEndBtn.addEventListener("click", () => {
+  quizEndedByTimeout = false;
+  endQuiz();
+});
 quizReplayBtn.addEventListener("click", backToSetup);
 quizHomeBtn.addEventListener("click", () => {
   backToSetup();
@@ -298,6 +327,7 @@ quizFormEl.addEventListener("submit", (event) => {
     showQuizFeedback(`Bravo, c'était ${match.name} !`, "success");
 
     if (quizFound.size === POKEMON_GEN1.length) {
+      quizEndedByTimeout = false;
       endQuiz();
       return;
     }
@@ -340,7 +370,11 @@ quizShareBtn.addEventListener("click", async () => {
   const total = POKEMON_GEN1.length;
   const count = quizFound.size;
   const percent = Math.round((count / total) * 100);
-  const timeLabel = quizMinutesUsed > 0 ? `en ${quizMinutesUsed} min` : "en mode infini";
+  // Le temps écoulé n'est intéressant à partager que si la partie ne s'est pas
+  // arrêtée simplement parce que le temps imparti était écoulé.
+  const timeLabel = quizEndedByTimeout
+    ? `en ${quizMinutesUsed} min`
+    : `en ${formatElapsed(quizElapsedMs)}`;
   const text = `J'ai trouvé ${percent}% des 151 Pokémon Génération 1 (${count}/${total}) ${timeLabel} sur PokéList ! Bats mon score :`;
   const url = buildQuizShareUrl();
 
