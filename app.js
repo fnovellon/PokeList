@@ -1,6 +1,15 @@
 const versionEl = document.getElementById("app-version");
 if (versionEl) versionEl.textContent = APP_VERSION;
 
+const headerEl = document.querySelector(".app-header");
+
+function updateHeaderHeight() {
+  document.documentElement.style.setProperty("--header-height", `${headerEl.offsetHeight}px`);
+}
+
+updateHeaderHeight();
+window.addEventListener("resize", updateHeaderHeight);
+
 const modeButtons = document.querySelectorAll(".mode-btn");
 const views = {
   list: document.getElementById("view-list"),

@@ -21,6 +21,7 @@ function saveFound(foundSet) {
 }
 
 let found = loadFound();
+let justFoundId = null;
 
 function updateQuizProgress() {
   const total = POKEMON_GEN1.length;
@@ -57,6 +58,7 @@ function renderQuizList() {
     const li = document.createElement("li");
     li.className = "pokemon-card quiz-card";
     if (isFound) li.classList.add("caught");
+    if (pokemon.id === justFoundId) li.classList.add("just-found");
 
     li.innerHTML = `
       <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
@@ -73,6 +75,13 @@ function renderQuizList() {
   }
 
   quizListEl.appendChild(fragment);
+
+  if (justFoundId !== null) {
+    quizListEl
+      .querySelector(".just-found")
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    justFoundId = null;
+  }
 }
 
 quizFormEl.addEventListener("submit", (event) => {
@@ -85,6 +94,7 @@ quizFormEl.addEventListener("submit", (event) => {
   if (match) {
     found.add(match.id);
     saveFound(found);
+    justFoundId = match.id;
     renderQuizList();
     updateQuizProgress();
     quizInputEl.value = "";
