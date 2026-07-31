@@ -6,46 +6,6 @@ const progressFillEl = document.getElementById("progress-fill");
 const progressTextEl = document.getElementById("progress-text");
 const checkAllBtn = document.getElementById("check-all");
 const uncheckAllBtn = document.getElementById("uncheck-all");
-const versionEl = document.getElementById("app-version");
-
-if (versionEl) versionEl.textContent = APP_VERSION;
-
-function normalize(str) {
-  return str
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[^a-z0-9]/g, "")
-    // "y" se prononce comme "i" en français (ex: "psi" ~ "Psykokwak")
-    .replace(/y/g, "i");
-}
-
-// Distance d'édition entre `query` et le préfixe de `target` qui lui ressemble le
-// plus (les caractères restants de `target` ne sont pas comptés), pour tolérer
-// une saisie partielle en plus des fautes de frappe (ex: "draco" ~ "dracaufeu").
-function prefixEditDistance(query, target) {
-  const rows = query.length + 1;
-  const cols = target.length + 1;
-  const dist = Array.from({ length: rows }, (_, i) => [i, ...Array(cols - 1).fill(0)]);
-  for (let j = 0; j < cols; j++) dist[0][j] = j;
-
-  for (let i = 1; i < rows; i++) {
-    for (let j = 1; j < cols; j++) {
-      const cost = query[i - 1] === target[j - 1] ? 0 : 1;
-      dist[i][j] = Math.min(
-        dist[i - 1][j] + 1,
-        dist[i][j - 1] + 1,
-        dist[i - 1][j - 1] + cost
-      );
-    }
-  }
-
-  return Math.min(...dist[rows - 1]);
-}
-
-POKEMON_GEN1.forEach((p) => {
-  p.normalizedName = normalize(p.name);
-});
 
 function matchesQuery(pokemon, rawQuery) {
   if (!rawQuery) return true;
@@ -90,10 +50,6 @@ function updateProgress() {
   const count = caught.size;
   progressFillEl.style.width = `${(count / total) * 100}%`;
   progressTextEl.textContent = `${count} / ${total} attrapés`;
-}
-
-function formatNumber(id) {
-  return `#${String(id).padStart(3, "0")}`;
 }
 
 function renderList() {

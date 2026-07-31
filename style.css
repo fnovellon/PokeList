@@ -67,6 +67,34 @@ body {
   vertical-align: middle;
 }
 
+.mode-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.mode-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.mode-btn:hover {
+  border-color: var(--accent-2);
+}
+
+.mode-btn.active {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: #fff;
+}
+
 .progress {
   display: flex;
   align-items: center;
@@ -109,7 +137,7 @@ main {
   margin-bottom: 1.25rem;
 }
 
-#search {
+.text-input {
   flex: 1;
   min-width: 220px;
   padding: 0.6rem 0.9rem;
@@ -120,7 +148,7 @@ main {
   font-size: 0.95rem;
 }
 
-#search:focus {
+.text-input:focus {
   outline: 2px solid var(--accent-2);
   outline-offset: 1px;
 }
@@ -237,4 +265,45 @@ main {
 .pokemon-name {
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.quiz-card {
+  padding-bottom: 0.75rem;
+}
+
+.quiz-sprite {
+  filter: grayscale(1) brightness(0);
+  opacity: 0.45;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.pokemon-card.caught .quiz-sprite {
+  filter: none;
+  opacity: 1;
+}
+
+.quiz-name {
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+}
+
+.pokemon-card.caught .quiz-name {
+  color: var(--text);
+  letter-spacing: normal;
+}
+
+.quiz-feedback {
+  min-height: 1.3em;
+  margin: -0.5rem 0 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.quiz-feedback.success {
+  color: var(--caught-border);
+}
+
+.quiz-feedback.error {
+  color: var(--accent);
 }

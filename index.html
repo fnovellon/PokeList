@@ -9,28 +9,66 @@
 <body>
   <header class="app-header">
     <h1>PokéList <span class="subtitle">Génération 1</span> <span id="app-version" class="app-version"></span></h1>
-    <div class="progress">
-      <div class="progress-bar">
-        <div id="progress-fill" class="progress-fill"></div>
-      </div>
-      <span id="progress-text">0 / 151 attrapés</span>
-    </div>
+    <nav class="mode-nav">
+      <button class="mode-btn active" data-mode="list">📋 Liste</button>
+      <button class="mode-btn" data-mode="quiz">❓ Quiz</button>
+    </nav>
   </header>
 
   <main>
-    <div class="toolbar">
-      <input type="text" id="search" placeholder="Rechercher un Pokémon (nom ou numéro)..." />
-      <div class="toolbar-buttons">
-        <button id="check-all">Tout cocher</button>
-        <button id="uncheck-all">Tout décocher</button>
+    <section id="view-list" class="view">
+      <div class="progress">
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <span id="progress-text">0 / 151 attrapés</span>
       </div>
-    </div>
 
-    <ul id="pokemon-list" class="pokemon-list"></ul>
+      <div class="toolbar">
+        <input type="text" id="search" class="text-input" placeholder="Rechercher un Pokémon (nom ou numéro)..." />
+        <div class="toolbar-buttons">
+          <button id="check-all">Tout cocher</button>
+          <button id="uncheck-all">Tout décocher</button>
+        </div>
+      </div>
+
+      <ul id="pokemon-list" class="pokemon-list"></ul>
+    </section>
+
+    <section id="view-quiz" class="view" hidden>
+      <div class="progress">
+        <div class="progress-bar">
+          <div id="quiz-progress-fill" class="progress-fill"></div>
+        </div>
+        <span id="quiz-progress-text">0 / 151 trouvés</span>
+      </div>
+
+      <form id="quiz-form" class="toolbar">
+        <input
+          type="text"
+          id="quiz-input"
+          class="text-input"
+          placeholder="Nom du Pokémon..."
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <div class="toolbar-buttons">
+          <button type="submit">Valider</button>
+          <button type="button" id="quiz-reset">Réinitialiser</button>
+        </div>
+      </form>
+      <p id="quiz-feedback" class="quiz-feedback" aria-live="polite"></p>
+
+      <ul id="quiz-list" class="pokemon-list"></ul>
+    </section>
   </main>
 
   <script src="version.js"></script>
   <script src="pokemon-data.js"></script>
-  <script src="script.js"></script>
+  <script src="matching.js"></script>
+  <script src="list.js"></script>
+  <script src="quiz.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
