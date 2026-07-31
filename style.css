@@ -664,6 +664,11 @@ body[data-card-size="small"] .pokemon-card {
   pointer-events: none;
 }
 
+.settings-toggle-indented {
+  margin-left: 1.6rem;
+  padding-top: 0;
+}
+
 .settings-toggle input {
   position: absolute;
   width: 1px;

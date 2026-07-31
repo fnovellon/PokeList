@@ -54,7 +54,7 @@ let quizFound = new Set();
 let quizDeadline = null; // timestamp ms, ou null si infini
 let quizShowTypes = false;
 let quizShowGrid = true;
-let quizMinutesUsed = 15;
+let quizMinutesUsed = 0;
 let quizStartedAt = null;
 let quizElapsedMs = 0;
 let quizEndedByTimeout = false;
@@ -188,7 +188,7 @@ function renderRecap() {
 
 function selectedMinutes() {
   const active = document.querySelector("#quiz-time-options .settings-option.active");
-  return Number(active?.dataset.minutes ?? 15);
+  return Number(active?.dataset.minutes ?? 0);
 }
 
 function padTime(totalSeconds) {
