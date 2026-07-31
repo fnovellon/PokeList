@@ -404,6 +404,12 @@ main {
   letter-spacing: normal;
 }
 
+.hint-revealed {
+  color: var(--accent-2);
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
 .quiz-feedback {
   min-height: 1.3em;
   margin: -0.5rem 0 1.25rem;

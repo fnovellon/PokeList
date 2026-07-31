@@ -27,6 +27,7 @@ const quizRecapEl = document.getElementById("quiz-recap");
 const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settings-option");
 const quizOptTypesEl = document.getElementById("quiz-opt-types");
 const quizOptGridEl = document.getElementById("quiz-opt-grid");
+const quizOptHintsEl = document.getElementById("quiz-opt-hints");
 const quizStartBtn = document.getElementById("quiz-start-btn");
 
 const quizListEl = document.getElementById("quiz-list");
@@ -54,6 +55,8 @@ let quizFound = new Set();
 let quizDeadline = null; // timestamp ms, ou null si infini
 let quizShowTypes = false;
 let quizShowGrid = true;
+let quizShowHints = false;
+let quizHintLevel = 0;
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
 let quizElapsedMs = 0;
@@ -98,6 +101,19 @@ function typeBadgesHtml(pokemon) {
   return `<div class="type-badges">${badges}</div>`;
 }
 
+const HINT_INTERVAL_MS = 20000;
+const HINT_MAX_LETTERS = 4;
+
+// Ne dévoile jamais tout le nom : on garde au moins un "?" même pour les
+// Pokémon les plus courts (Mew, Abo...).
+function hintedPlaceholder(pokemon) {
+  if (!quizShowHints || quizHintLevel === 0) return "?????";
+  const revealCount = Math.min(quizHintLevel, pokemon.name.length - 1);
+  const revealed = pokemon.name.slice(0, revealCount);
+  const hidden = "?".repeat(Math.max(1, pokemon.name.length - revealCount));
+  return `<span class="hint-revealed">${revealed}</span>${hidden}`;
+}
+
 function renderQuizPlaying() {
   quizListEl.innerHTML = "";
   const fragment = document.createDocumentFragment();
@@ -120,7 +136,7 @@ function renderQuizPlaying() {
       />
       <div class="quiz-info">
         <span class="pokemon-name quiz-name" ${isFound ? `title="${pokemon.name}"` : ""}>${
-          isFound ? pokemon.name : "?????"
+          isFound ? pokemon.name : hintedPlaceholder(pokemon)
         }</span>
         ${typeBadgesHtml(pokemon)}
       </div>
@@ -205,9 +221,23 @@ function formatElapsed(elapsedMs) {
   return padTime(Math.max(0, Math.floor(elapsedMs / 1000)));
 }
 
+// Dévoile une lettre de plus, pour tous les Pokémon encore cachés, toutes les
+// HINT_INTERVAL_MS — seulement si l'aide "Indice progressif" est activée.
+function maybeAdvanceHints() {
+  if (!quizShowHints) return;
+  const elapsedMs = Date.now() - quizStartedAt;
+  const level = Math.min(HINT_MAX_LETTERS, Math.floor(elapsedMs / HINT_INTERVAL_MS));
+  if (level !== quizHintLevel) {
+    quizHintLevel = level;
+    if (quizShowGrid) renderQuizPlaying();
+  }
+}
+
 // Le quiz a toujours un chrono : compte à rebours si un temps est imparti,
 // sinon chronomètre qui compte le temps écoulé (mode Infini).
 function tickTimer() {
+  maybeAdvanceHints();
+
   if (quizDeadline === null) {
     quizTimerEl.textContent = formatElapsed(Date.now() - quizStartedAt);
     quizTimerEl.classList.remove("warning");
@@ -240,6 +270,8 @@ function startQuiz() {
   quizDeadline = minutes > 0 ? quizStartedAt + minutes * 60000 : null;
   quizShowTypes = quizOptTypesEl.checked;
   quizShowGrid = quizOptGridEl.checked;
+  quizShowHints = quizOptHintsEl.checked;
+  quizHintLevel = 0;
   quizPhase = "playing";
 
   quizSetupEl.hidden = true;
@@ -283,16 +315,18 @@ quizTimeOptionBtns.forEach((btn) => {
   });
 });
 
-// L'aide "types" n'a de sens que si la grille (qui affiche les badges) est
-// elle-même activée.
-function syncTypesAvailability() {
+// Les aides "types" et "indice" n'ont de sens que si la grille (qui les
+// affiche) est elle-même activée.
+function syncGridDependentOptions() {
   const gridOn = quizOptGridEl.checked;
-  quizOptTypesEl.disabled = !gridOn;
-  if (!gridOn) quizOptTypesEl.checked = false;
+  [quizOptTypesEl, quizOptHintsEl].forEach((el) => {
+    el.disabled = !gridOn;
+    if (!gridOn) el.checked = false;
+  });
 }
 
-quizOptGridEl.addEventListener("change", syncTypesAvailability);
-syncTypesAvailability();
+quizOptGridEl.addEventListener("change", syncGridDependentOptions);
+syncGridDependentOptions();
 
 quizStartBtn.addEventListener("click", startQuiz);
 quizEndBtn.addEventListener("click", () => {
@@ -304,6 +338,10 @@ quizHomeBtn.addEventListener("click", () => {
   backToSetup();
   goToMode("home");
 });
+
+function vibrate(pattern) {
+  navigator.vibrate?.(pattern);
+}
 
 quizFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -325,9 +363,11 @@ quizFormEl.addEventListener("submit", (event) => {
     updateQuizProgress();
     quizInputEl.value = "";
     showQuizFeedback(`Bravo, c'était ${match.name} !`, "success");
+    vibrate(25);
 
     if (quizFound.size === POKEMON_GEN1.length) {
       quizEndedByTimeout = false;
+      vibrate([60, 40, 60, 40, 120]);
       endQuiz();
       return;
     }
@@ -337,6 +377,7 @@ quizFormEl.addEventListener("submit", (event) => {
       showQuizFeedback(`${alreadyFound.name} a déjà été trouvé.`, null);
     } else {
       showQuizFeedback("Aucun Pokémon ne correspond, réessaie.", "error");
+      vibrate([30, 30, 30]);
     }
   }
 
@@ -351,6 +392,7 @@ function buildQuizShareUrl() {
   params.set("minutes", String(quizMinutesUsed));
   params.set("types", quizShowTypes ? "1" : "0");
   params.set("grid", quizShowGrid ? "1" : "0");
+  params.set("hints", quizShowHints ? "1" : "0");
 
   const url = new URL(location.href);
   url.search = params.toString();
@@ -383,6 +425,122 @@ function elapsedMinutesLabel(ms) {
   return minutes < 1 ? "< 1" : String(minutes);
 }
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function wrapCenteredText(ctx, text, centerX, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const attempt = line ? `${line} ${word}` : word;
+    if (line && ctx.measureText(attempt).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = attempt;
+    }
+  }
+  if (line) lines.push(line);
+  lines.forEach((l, i) => ctx.fillText(l, centerX, y + i * lineHeight));
+}
+
+// Génère une image "carte de résultat" (façon aperçu de partage social),
+// avec quelques sprites des Pokémon trouvés en bas si le chargement réussit.
+async function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
+  const width = 1200;
+  const height = 630;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  bgGrad.addColorStop(0, "#3b6ce0");
+  bgGrad.addColorStop(1, "#ef5350");
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  const pad = 44;
+  roundRectPath(ctx, pad, pad, width - pad * 2, height - pad * 2, 28);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  const centerX = width / 2;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+
+  ctx.fillStyle = "#1c1f2a";
+  ctx.font = "700 30px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText("🎮 PokéList — Quiz Génération 1", centerX, pad + 58);
+
+  ctx.fillStyle = "#3b6ce0";
+  ctx.font = "800 148px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`${percent}%`, centerX, pad + 230);
+
+  ctx.fillStyle = "#676c7c";
+  ctx.font = "600 32px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`${count} / ${total} Pokémon trouvés`, centerX, pad + 278);
+
+  ctx.fillStyle = "#3b6ce0";
+  ctx.font = "700 28px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`⏱️ En seulement ${minutesLabel} min`, centerX, pad + 322);
+
+  ctx.fillStyle = "#1c1f2a";
+  ctx.font = "500 26px 'Segoe UI', Arial, sans-serif";
+  wrapCenteredText(ctx, phrase, centerX, pad + 372, width - pad * 2 - 100, 34);
+
+  const foundIds = [...quizFound].sort((a, b) => a - b);
+  if (foundIds.length > 0) {
+    const n = Math.min(8, foundIds.length);
+    const picks = [...new Set(Array.from({ length: n }, (_, i) => foundIds[Math.floor((i / n) * foundIds.length)]))];
+
+    try {
+      const images = await Promise.all(picks.map((id) => loadImage(getSpriteUrl(id))));
+      const spriteSize = 64;
+      const gap = 18;
+      const rowWidth = images.length * spriteSize + (images.length - 1) * gap;
+      let sx = centerX - rowWidth / 2;
+      const sy = height - pad - spriteSize - 26;
+
+      images.forEach((img) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sx + spriteSize / 2, sy + spriteSize / 2, spriteSize / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fillStyle = "#f4f6fb";
+        ctx.fill();
+        ctx.clip();
+        ctx.drawImage(img, sx, sy, spriteSize, spriteSize);
+        ctx.restore();
+        sx += spriteSize + gap;
+      });
+    } catch {
+      // Le chargement d'un sprite a échoué (ex: hors-ligne) : on partage la
+      // carte sans la bande d'images plutôt que d'échouer tout le partage.
+    }
+  }
+
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+
 quizShareBtn.addEventListener("click", async () => {
   const total = POKEMON_GEN1.length;
   const count = quizFound.size;
@@ -393,29 +551,50 @@ quizShareBtn.addEventListener("click", async () => {
   const minutesLabel = quizEndedByTimeout
     ? String(quizMinutesUsed)
     : elapsedMinutesLabel(quizElapsedMs);
+  const phrase = scorePhraseFor(percent);
   const url = buildQuizShareUrl();
 
   const text = [
-    scorePhraseFor(percent),
+    phrase,
     `${count}/151 Pokémon de Gen1 (${percent}%)`,
     `En seulement ${minutesLabel} min`,
     `Tente de me battre sur ${url}`,
   ].join("\n");
 
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: "PokéList - Quiz Génération 1", text });
-    } catch {
-      // Partage annulé par l'utilisateur : rien à faire.
-    }
-    return;
-  }
+  const originalLabel = quizShareBtn.textContent;
+  quizShareBtn.disabled = true;
+  quizShareBtn.textContent = "⏳ Génération...";
 
   try {
+    const blob = await buildResultCardBlob({ percent, count, total, minutesLabel, phrase });
+    const file = blob && new File([blob], "pokelist-quiz.png", { type: "image/png" });
+
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ title: "PokéList - Quiz Génération 1", text, files: [file] });
+        return;
+      } catch {
+        // Partage (avec image) annulé : on retente sans image ci-dessous.
+      }
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "PokéList - Quiz Génération 1", text });
+        return;
+      } catch {
+        // Partage annulé par l'utilisateur : rien à faire.
+        return;
+      }
+    }
+
     await navigator.clipboard.writeText(text);
     showShareFeedback("Message copié dans le presse-papiers !");
   } catch {
-    showShareFeedback("Impossible de copier le lien.");
+    showShareFeedback("Impossible de partager le résultat.");
+  } finally {
+    quizShareBtn.disabled = false;
+    quizShareBtn.textContent = originalLabel;
   }
 });
 
@@ -428,4 +607,5 @@ function applySharedQuizSettings(params) {
   });
   quizOptTypesEl.checked = params.get("types") === "1";
   quizOptGridEl.checked = params.get("grid") === "1";
+  quizOptHintsEl.checked = params.get("hints") === "1";
 }
