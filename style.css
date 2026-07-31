@@ -358,14 +358,20 @@ main {
 
 .pokemon-number {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
-  min-width: 2.8rem;
+  flex-shrink: 0;
+  width: 2.1rem;
 }
 
 .pokemon-name {
+  flex: 1;
+  min-width: 0;
   font-weight: 600;
   font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .quiz-card {
@@ -388,6 +394,11 @@ main {
 }
 
 .quiz-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text-muted);
   letter-spacing: 0.2em;
 }
@@ -449,6 +460,27 @@ body[data-card-size="small"] .pokemon-list {
 body[data-card-size="small"] .pokemon-sprite {
   width: 38px;
   height: 38px;
+}
+
+body[data-card-size="small"] .pokemon-label {
+  gap: 0.5rem;
+  padding: 0.6rem;
+  padding-bottom: 1.5rem;
+}
+
+body[data-card-size="small"] .quiz-card {
+  gap: 0.5rem;
+  padding: 0.6rem;
+}
+
+body[data-card-size="small"] .pokemon-number {
+  width: 1.6rem;
+  font-size: 0.68rem;
+}
+
+body[data-card-size="small"] .pokemon-name,
+body[data-card-size="small"] .quiz-name {
+  font-size: 0.85rem;
 }
 
 body[data-card-size="large"] .pokemon-list {

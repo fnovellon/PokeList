@@ -69,7 +69,7 @@ function renderList() {
       <label for="${checkboxId}" class="pokemon-label">
         <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
         <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${pokemon.name}" loading="lazy" />
-        <span class="pokemon-name">${pokemon.name}</span>
+        <span class="pokemon-name" title="${pokemon.name}">${pokemon.name}</span>
         <span class="check-badge" aria-hidden="true">✓</span>
       </label>
       <input type="checkbox" class="pokemon-checkbox" id="${checkboxId}" ${caught.has(pokemon.id) ? "checked" : ""} />

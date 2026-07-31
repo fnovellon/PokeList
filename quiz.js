@@ -67,7 +67,9 @@ function renderQuizList() {
         alt="${isFound ? pokemon.name : "Pokémon non découvert"}"
         loading="lazy"
       />
-      <span class="pokemon-name quiz-name">${isFound ? pokemon.name : "?????"}</span>
+      <span class="pokemon-name quiz-name" ${isFound ? `title="${pokemon.name}"` : ""}>${
+        isFound ? pokemon.name : "?????"
+      }</span>
     `;
 
     fragment.appendChild(li);
