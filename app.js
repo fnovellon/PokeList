@@ -56,6 +56,15 @@ homeCards.forEach((card) => {
 
 updateHomeStats();
 
+// Un lien de partage (bouton "Partager" du récap Quiz) atterrit ici avec des
+// paramètres d'URL : on reprend directement ces réglages sur l'écran Quiz.
+const sharedQuizParams = new URLSearchParams(location.search);
+if (sharedQuizParams.has("minutes")) {
+  applySharedQuizSettings(sharedQuizParams);
+  goToMode("quiz");
+  history.replaceState(null, "", location.pathname);
+}
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").catch(() => {});

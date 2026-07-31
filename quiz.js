@@ -44,6 +44,8 @@ const quizRecapTextEl = document.getElementById("quiz-recap-text");
 const quizRecapListEl = document.getElementById("quiz-recap-list");
 const quizReplayBtn = document.getElementById("quiz-replay-btn");
 const quizHomeBtn = document.getElementById("quiz-home-btn");
+const quizShareBtn = document.getElementById("quiz-share-btn");
+const quizShareFeedbackEl = document.getElementById("quiz-share-feedback");
 
 // Rien n'est persisté pour le Quiz : tout vit en mémoire le temps de la partie.
 let quizPhase = "setup"; // "setup" | "playing" | "recap"
@@ -51,6 +53,7 @@ let quizFound = new Set();
 let quizDeadline = null; // timestamp ms, ou null si infini
 let quizShowTypes = false;
 let quizShowGrid = true;
+let quizMinutesUsed = 15;
 let quizTimerHandle = null;
 let justFoundId = null;
 
@@ -205,6 +208,7 @@ function startQuiz() {
   quizFound = new Set();
   justFoundId = null;
   const minutes = selectedMinutes();
+  quizMinutesUsed = minutes;
   quizDeadline = minutes > 0 ? Date.now() + minutes * 60000 : null;
   quizShowTypes = quizOptTypesEl.checked;
   quizShowGrid = quizOptGridEl.checked;
@@ -294,3 +298,62 @@ quizFormEl.addEventListener("submit", (event) => {
 
   quizInputEl.focus();
 });
+
+// Construit un lien qui reproduit exactement la configuration de cette partie
+// (temps imparti, aides), pour que la personne qui l'ouvre parte sur un pied
+// d'égalité.
+function buildQuizShareUrl() {
+  const params = new URLSearchParams();
+  params.set("minutes", String(quizMinutesUsed));
+  params.set("types", quizShowTypes ? "1" : "0");
+  params.set("grid", quizShowGrid ? "1" : "0");
+
+  const url = new URL(location.href);
+  url.search = params.toString();
+  url.hash = "";
+  return url.toString();
+}
+
+function showShareFeedback(message) {
+  quizShareFeedbackEl.textContent = message;
+  clearTimeout(showShareFeedback.timeoutId);
+  showShareFeedback.timeoutId = setTimeout(() => {
+    quizShareFeedbackEl.textContent = "";
+  }, 3000);
+}
+
+quizShareBtn.addEventListener("click", async () => {
+  const total = POKEMON_GEN1.length;
+  const count = quizFound.size;
+  const percent = Math.round((count / total) * 100);
+  const timeLabel = quizMinutesUsed > 0 ? `en ${quizMinutesUsed} min` : "en mode infini";
+  const text = `J'ai trouvé ${percent}% des 151 Pokémon Génération 1 (${count}/${total}) ${timeLabel} sur PokéList ! Bats mon score :`;
+  const url = buildQuizShareUrl();
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "PokéList - Quiz Génération 1", text, url });
+    } catch {
+      // Partage annulé par l'utilisateur : rien à faire.
+    }
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    showShareFeedback("Lien copié dans le presse-papiers !");
+  } catch {
+    showShareFeedback("Impossible de copier le lien.");
+  }
+});
+
+// Reprend les réglages (temps, aides) d'une partie partagée via l'URL ; appelée
+// depuis app.js une fois la navigation entre modes disponible.
+function applySharedQuizSettings(params) {
+  const minutes = params.get("minutes");
+  quizTimeOptionBtns.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.minutes === minutes);
+  });
+  quizOptTypesEl.checked = params.get("types") === "1";
+  quizOptGridEl.checked = params.get("grid") === "1";
+}

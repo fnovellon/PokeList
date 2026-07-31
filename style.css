@@ -834,7 +834,17 @@ body[data-card-size="small"] .pokemon-card {
 
 .quiz-recap-actions {
   justify-content: center;
+  flex-wrap: wrap;
   margin: 1.5rem 0 0;
+}
+
+.quiz-share-feedback {
+  min-height: 1.3em;
+  margin: 0.6rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--caught-border);
 }
 
 .pokemon-card.missing {
