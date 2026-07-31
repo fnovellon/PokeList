@@ -20,7 +20,6 @@ window.addEventListener("resize", updateStickyOffsets);
 const modeButtons = document.querySelectorAll(".mode-btn");
 const homeCards = document.querySelectorAll(".home-card");
 const homeListStatEl = document.getElementById("home-list-stat");
-const homeQuizStatEl = document.getElementById("home-quiz-stat");
 const views = {
   home: document.getElementById("view-home"),
   list: document.getElementById("view-list"),
@@ -29,7 +28,6 @@ const views = {
 
 function updateHomeStats() {
   homeListStatEl.textContent = `${caught.size} / ${POKEMON_GEN1.length} attrapés`;
-  homeQuizStatEl.textContent = `${found.size} / ${POKEMON_GEN1.length} trouvés`;
 }
 
 function goToMode(mode) {

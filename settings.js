@@ -50,13 +50,16 @@ applyCardSize();
 const settingsBtn = document.getElementById("settings-btn");
 const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
-const settingsOptionBtns = document.querySelectorAll(".settings-option");
+// Scopé au panneau de réglages : le Quiz a ses propres boutons ".settings-option"
+// (choix du temps) qui ne doivent pas être pilotés par cette logique.
+const settingsOptionBtns = document.querySelectorAll("#settings-overlay .settings-option");
 const animatedToggle = document.getElementById("setting-animated");
 const shinyToggle = document.getElementById("setting-shiny");
 
 function refreshSpriteDependentViews() {
   renderList();
-  renderQuizList();
+  if (quizPhase === "playing" && quizShowGrid) renderQuizPlaying();
+  if (quizPhase === "recap") renderRecap();
 }
 
 function updateSettingsUI() {
@@ -115,27 +118,5 @@ document.getElementById("settings-reset-list").addEventListener("click", () => {
   localStorage.removeItem(STORAGE_KEY);
   renderList();
   updateProgress();
-  updateHomeStats();
-});
-
-document.getElementById("settings-reset-quiz").addEventListener("click", () => {
-  if (!confirm("Réinitialiser la progression du mode Quiz ?")) return;
-  found = new Set();
-  localStorage.removeItem(QUIZ_STORAGE_KEY);
-  renderQuizList();
-  updateQuizProgress();
-  updateHomeStats();
-});
-
-document.getElementById("settings-reset-all").addEventListener("click", () => {
-  if (!confirm("Tout réinitialiser (Liste + Quiz) ?")) return;
-  caught = new Set();
-  found = new Set();
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(QUIZ_STORAGE_KEY);
-  renderList();
-  updateProgress();
-  renderQuizList();
-  updateQuizProgress();
   updateHomeStats();
 });

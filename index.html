@@ -35,8 +35,7 @@
         <button class="home-card" data-mode="quiz">
           <span class="home-card-icon">❓</span>
           <span class="home-card-title">Mode Quiz</span>
-          <span class="home-card-desc">Devine le nom de chaque Pokémon caché.</span>
-          <span class="home-card-stat" id="home-quiz-stat">0 / 151 trouvés</span>
+          <span class="home-card-desc">Devine le nom de chaque Pokémon caché, contre le chrono.</span>
         </button>
       </div>
     </section>
@@ -61,30 +60,77 @@
     </section>
 
     <section id="view-quiz" class="view" hidden>
-      <div class="progress">
-        <div class="progress-bar">
-          <div id="quiz-progress-fill" class="progress-fill"></div>
+      <div id="quiz-setup" class="quiz-setup">
+        <h2>Configurer le Quiz</h2>
+
+        <div class="settings-section">
+          <h3>Temps imparti</h3>
+          <div class="settings-options" id="quiz-time-options">
+            <button class="settings-option" data-minutes="5">5 min</button>
+            <button class="settings-option" data-minutes="10">10 min</button>
+            <button class="settings-option active" data-minutes="15">15 min</button>
+            <button class="settings-option" data-minutes="30">30 min</button>
+            <button class="settings-option" data-minutes="0">∞ Infini</button>
+          </div>
         </div>
-        <span id="quiz-progress-text">0 / 151 trouvés</span>
+
+        <div class="settings-section">
+          <h3>Aides</h3>
+          <label class="settings-toggle">
+            <input type="checkbox" id="quiz-opt-types" />
+            <span class="switch"></span>
+            <span>🏷️ Afficher les types</span>
+          </label>
+          <label class="settings-toggle">
+            <input type="checkbox" id="quiz-opt-grid" checked />
+            <span class="switch"></span>
+            <span>🔢 Afficher la grille (numéros)</span>
+          </label>
+        </div>
+
+        <button id="quiz-start-btn" class="quiz-start-btn">▶️ Commencer</button>
       </div>
 
-      <form id="quiz-form" class="toolbar">
-        <input
-          type="text"
-          id="quiz-input"
-          class="text-input"
-          placeholder="Nom du Pokémon..."
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-        />
-        <div class="toolbar-buttons">
-          <button type="submit">Valider</button>
+      <div id="quiz-playing" class="view" hidden>
+        <div class="progress">
+          <div class="progress-bar">
+            <div id="quiz-progress-fill" class="progress-fill"></div>
+          </div>
+          <span id="quiz-progress-text">0 / 151 trouvés</span>
         </div>
-      </form>
-      <p id="quiz-feedback" class="quiz-feedback" aria-live="polite"></p>
 
-      <ul id="quiz-list" class="pokemon-list"></ul>
+        <form id="quiz-form" class="toolbar">
+          <span id="quiz-timer" class="quiz-timer">15:00</span>
+          <input
+            type="text"
+            id="quiz-input"
+            class="text-input"
+            placeholder="Nom du Pokémon..."
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          <div class="toolbar-buttons">
+            <button type="submit">Valider</button>
+            <button type="button" id="quiz-end-btn">Terminer</button>
+          </div>
+        </form>
+        <p id="quiz-feedback" class="quiz-feedback" aria-live="polite"></p>
+
+        <ul id="quiz-list" class="pokemon-list"></ul>
+        <div id="quiz-found-chips" class="quiz-found-chips"></div>
+      </div>
+
+      <div id="quiz-recap" class="view" hidden>
+        <h2>Résultats</h2>
+        <div class="quiz-recap-stat" id="quiz-recap-stat">0%</div>
+        <p id="quiz-recap-text" class="quiz-recap-text"></p>
+        <ul id="quiz-recap-list" class="pokemon-list"></ul>
+        <div class="toolbar-buttons quiz-recap-actions">
+          <button id="quiz-replay-btn">🔁 Rejouer</button>
+          <button id="quiz-home-btn">🏠 Accueil</button>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -129,10 +175,9 @@
 
       <div class="settings-section">
         <h3>Réinitialiser la progression</h3>
+        <p class="settings-hint">Le mode Quiz ne conserve rien d'une partie à l'autre.</p>
         <div class="settings-options">
           <button id="settings-reset-list" class="settings-danger">Mode Liste</button>
-          <button id="settings-reset-quiz" class="settings-danger">Mode Quiz</button>
-          <button id="settings-reset-all" class="settings-danger">Tout</button>
         </div>
       </div>
     </div>
