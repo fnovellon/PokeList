@@ -4,7 +4,7 @@ const SPRITE_BASE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sp
 const DEFAULT_SETTINGS = {
   theme: "auto", // auto | light | dark
   cardSize: "medium", // small | medium | large
-  animated: false,
+  animated: true,
   shiny: false,
 };
 

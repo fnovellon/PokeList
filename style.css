@@ -448,49 +448,92 @@ main {
   animation: reveal-pop 0.6s ease;
 }
 
-/* Taille des cartes (menu Réglages) */
-body[data-card-size="small"] .pokemon-list {
+/* Taille des cartes (menu Réglages) — la taille par défaut ("grande") reprend
+   les règles de base ci-dessus ; petite et moyenne les resserrent. */
+body[data-card-size="medium"] .pokemon-list {
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
 }
 
-body[data-card-size="small"] .pokemon-sprite {
+body[data-card-size="medium"] .pokemon-sprite {
   width: 38px;
   height: 38px;
 }
 
-body[data-card-size="small"] .pokemon-label {
+body[data-card-size="medium"] .pokemon-label {
   gap: 0.5rem;
   padding: 0.6rem;
   padding-bottom: 1.5rem;
 }
 
-body[data-card-size="small"] .quiz-card {
+body[data-card-size="medium"] .quiz-card {
   gap: 0.5rem;
   padding: 0.6rem;
 }
 
-body[data-card-size="small"] .pokemon-number {
+body[data-card-size="medium"] .pokemon-number {
   width: 1.6rem;
   font-size: 0.68rem;
 }
 
-body[data-card-size="small"] .pokemon-name,
-body[data-card-size="small"] .quiz-name {
+body[data-card-size="medium"] .pokemon-name,
+body[data-card-size="medium"] .quiz-name {
   font-size: 0.85rem;
 }
 
-body[data-card-size="large"] .pokemon-list {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+body[data-card-size="medium"] .check-badge {
+  width: 18px;
+  height: 18px;
+  right: 0.5rem;
+  bottom: 0.45rem;
+  font-size: 0.7rem;
 }
 
-body[data-card-size="large"] .pokemon-sprite {
-  width: 84px;
-  height: 84px;
+body[data-card-size="small"] .pokemon-list {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 0.5rem;
 }
 
-body[data-card-size="large"] .pokemon-name,
-body[data-card-size="large"] .quiz-name {
-  font-size: 1.1rem;
+body[data-card-size="small"] .pokemon-sprite {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+}
+
+body[data-card-size="small"] .pokemon-label {
+  gap: 0.35rem;
+  padding: 0.4rem;
+  padding-bottom: 1.2rem;
+}
+
+body[data-card-size="small"] .quiz-card {
+  gap: 0.35rem;
+  padding: 0.4rem;
+}
+
+body[data-card-size="small"] .pokemon-number {
+  width: 1.15rem;
+  font-size: 0.58rem;
+}
+
+body[data-card-size="small"] .pokemon-name,
+body[data-card-size="small"] .quiz-name {
+  font-size: 0.72rem;
+}
+
+body[data-card-size="small"] .quiz-name {
+  letter-spacing: 0.08em;
+}
+
+body[data-card-size="small"] .check-badge {
+  width: 14px;
+  height: 14px;
+  right: 0.35rem;
+  bottom: 0.3rem;
+  font-size: 0.55rem;
+}
+
+body[data-card-size="small"] .pokemon-card {
+  border-radius: 9px;
 }
 
 /* Panneau de réglages */
