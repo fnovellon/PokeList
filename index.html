@@ -10,13 +10,31 @@
   <header class="app-header">
     <h1>PokéList <span class="subtitle">Génération 1</span> <span id="app-version" class="app-version"></span></h1>
     <nav class="mode-nav">
-      <button class="mode-btn active" data-mode="list">📋 Liste</button>
+      <button class="mode-btn active" data-mode="home">🏠 Accueil</button>
+      <button class="mode-btn" data-mode="list">📋 Liste</button>
       <button class="mode-btn" data-mode="quiz">❓ Quiz</button>
     </nav>
   </header>
 
   <main>
-    <section id="view-list" class="view">
+    <section id="view-home" class="view">
+      <div class="home-grid">
+        <button class="home-card" data-mode="list">
+          <span class="home-card-icon">📋</span>
+          <span class="home-card-title">Mode Liste</span>
+          <span class="home-card-desc">Coche les 151 Pokémon que tu as attrapés.</span>
+          <span class="home-card-stat" id="home-list-stat">0 / 151 attrapés</span>
+        </button>
+        <button class="home-card" data-mode="quiz">
+          <span class="home-card-icon">❓</span>
+          <span class="home-card-title">Mode Quiz</span>
+          <span class="home-card-desc">Devine le nom de chaque Pokémon caché.</span>
+          <span class="home-card-stat" id="home-quiz-stat">0 / 151 trouvés</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="view-list" class="view" hidden>
       <div class="progress">
         <div class="progress-bar">
           <div id="progress-fill" class="progress-fill"></div>

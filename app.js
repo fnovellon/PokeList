@@ -18,25 +18,42 @@ updateStickyOffsets();
 window.addEventListener("resize", updateStickyOffsets);
 
 const modeButtons = document.querySelectorAll(".mode-btn");
+const homeCards = document.querySelectorAll(".home-card");
+const homeListStatEl = document.getElementById("home-list-stat");
+const homeQuizStatEl = document.getElementById("home-quiz-stat");
 const views = {
+  home: document.getElementById("view-home"),
   list: document.getElementById("view-list"),
   quiz: document.getElementById("view-quiz"),
 };
 
-modeButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const mode = btn.dataset.mode;
+function updateHomeStats() {
+  homeListStatEl.textContent = `${caught.size} / ${POKEMON_GEN1.length} attrapés`;
+  homeQuizStatEl.textContent = `${found.size} / ${POKEMON_GEN1.length} trouvés`;
+}
 
-    modeButtons.forEach((b) => b.classList.toggle("active", b === btn));
-    Object.entries(views).forEach(([key, view]) => {
-      view.hidden = key !== mode;
-    });
-
-    if (mode === "quiz") {
-      // La barre du quiz était masquée (hauteur nulle) jusqu'ici, on peut
-      // désormais mesurer sa vraie hauteur.
-      updateStickyOffsets();
-      quizInputEl.focus();
-    }
+function goToMode(mode) {
+  modeButtons.forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+  Object.entries(views).forEach(([key, view]) => {
+    view.hidden = key !== mode;
   });
+
+  if (mode === "home") updateHomeStats();
+
+  if (mode === "quiz") {
+    // La barre du quiz était masquée (hauteur nulle) jusqu'ici, on peut
+    // désormais mesurer sa vraie hauteur.
+    updateStickyOffsets();
+    quizInputEl.focus();
+  }
+}
+
+modeButtons.forEach((btn) => {
+  btn.addEventListener("click", () => goToMode(btn.dataset.mode));
 });
+
+homeCards.forEach((card) => {
+  card.addEventListener("click", () => goToMode(card.dataset.mode));
+});
+
+updateHomeStats();
