@@ -30,14 +30,17 @@ function saveSettings() {
 
 let settings = loadSettings();
 
-// Choisit l'URL du sprite selon les réglages courants (animé et/ou shiny).
+// Choisit l'URL du sprite selon les réglages courants (animé et/ou shiny) ;
+// un Pokémon dont le Shiny a été débloqué (voir shiny.js) s'affiche toujours
+// en Shiny, même si le réglage global "Variante Shiny" est désactivé.
 function getSpriteUrl(id) {
+  const shiny = settings.shiny || isShinyUnlocked(id);
   if (settings.animated) {
-    return settings.shiny
+    return shiny
       ? `${SPRITE_BASE}/versions/generation-v/black-white/animated/shiny/${id}.gif`
       : `${SPRITE_BASE}/versions/generation-v/black-white/animated/${id}.gif`;
   }
-  return settings.shiny ? `${SPRITE_BASE}/shiny/${id}.png` : `${SPRITE_BASE}/${id}.png`;
+  return shiny ? `${SPRITE_BASE}/shiny/${id}.png` : `${SPRITE_BASE}/${id}.png`;
 }
 
 function applyTheme() {

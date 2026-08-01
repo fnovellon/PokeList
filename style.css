@@ -389,6 +389,32 @@ main {
   flex-shrink: 0;
 }
 
+.sprite-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.shiny-sparkle {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  font-size: 0.85rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 3px rgba(255, 210, 60, 0.9));
+  animation: shiny-float 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shiny-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.15);
+  }
+}
+
 .pokemon-number {
   color: var(--text-muted);
   font-size: 0.75rem;
@@ -457,6 +483,10 @@ main {
 
 .quiz-feedback.error {
   color: var(--accent);
+}
+
+.quiz-feedback.shiny {
+  color: #caa316;
 }
 
 #quiz-form {

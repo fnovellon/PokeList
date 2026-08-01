@@ -86,6 +86,10 @@ function goToMode(mode) {
 
   if (mode === "home") updateHomeStats();
 
+  // Un Shiny peut avoir été débloqué pendant une partie de Quiz : on
+  // rafraîchit la Liste à chaque fois qu'on y entre pour rester à jour.
+  if (mode === "list") renderList();
+
   if (mode === "quiz") {
     // La barre du quiz était masquée (hauteur nulle) jusqu'ici, on peut
     // désormais mesurer sa vraie hauteur.

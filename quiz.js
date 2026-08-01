@@ -133,12 +133,15 @@ function renderQuizPlaying() {
 
     li.innerHTML = `
       <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
-      <img
-        class="pokemon-sprite quiz-sprite"
-        src="${getSpriteUrl(pokemon.id)}"
-        alt="${isFound ? name : t("quiz.altHidden")}"
-        loading="lazy"
-      />
+      <span class="sprite-wrap">
+        <img
+          class="pokemon-sprite quiz-sprite"
+          src="${getSpriteUrl(pokemon.id)}"
+          alt="${isFound ? name : t("quiz.altHidden")}"
+          loading="lazy"
+        />
+        ${shinySparkleHtml(pokemon.id)}
+      </span>
       <div class="pokemon-info">
         <span class="pokemon-name quiz-name" ${isFound ? `title="${name}"` : ""}>${
           isFound ? name : hintedPlaceholder(pokemon)
@@ -168,7 +171,10 @@ function addFoundChip(pokemon) {
   chip.className = "found-chip";
   chip.dataset.id = pokemon.id;
   chip.innerHTML = `
-    <img class="found-chip-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
+    <span class="sprite-wrap">
+      <img class="found-chip-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
+      ${shinySparkleHtml(pokemon.id)}
+    </span>
     <span>${formatNumber(pokemon.id)} ${name}</span>
   `;
 
@@ -207,7 +213,10 @@ function renderRecap() {
 
     li.innerHTML = `
       <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
-      <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
+      <span class="sprite-wrap">
+        <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
+        ${shinySparkleHtml(pokemon.id)}
+      </span>
       <span class="pokemon-name">${name}</span>
     `;
 
@@ -528,6 +537,9 @@ quizFormEl.addEventListener("submit", (event) => {
     quizFound.add(match.id);
     quizFindLog.push({ id: match.id, elapsedMs: Date.now() - quizStartedAt });
     justFoundId = match.id;
+    // Le tirage Shiny doit avoir lieu avant le rendu, sinon l'étoile
+    // n'apparaîtrait qu'à la prochaine mise à jour de la grille/des puces.
+    const wonShiny = tryUnlockShiny(match.id);
     if (quizShowGrid) {
       renderQuizPlaying();
     } else {
@@ -535,8 +547,14 @@ quizFormEl.addEventListener("submit", (event) => {
     }
     updateQuizProgress();
     quizInputEl.value = "";
-    showQuizFeedback(t("quiz.feedbackCorrect", { name: pokemonName(match) }), "success");
-    vibrate(25);
+
+    if (wonShiny) {
+      showQuizFeedback(t("quiz.shinyUnlocked", { name: pokemonName(match) }), "shiny");
+      vibrate([20, 30, 20, 30, 80]);
+    } else {
+      showQuizFeedback(t("quiz.feedbackCorrect", { name: pokemonName(match) }), "success");
+      vibrate(25);
+    }
 
     if (quizFound.size === roster.length) {
       quizEndedByTimeout = false;
@@ -798,4 +816,18 @@ window.debug.fillQuiz = function () {
   if (quizShowGrid) renderQuizPlaying();
   updateQuizProgress();
   console.log(`[debug.fillQuiz] ${quizFound.size} / ${roster.length} débloqués (#${keepHidden} exclu).`);
+};
+
+// debug.unlockShiny(id) : débloque directement le Shiny d'un Pokémon (sans
+// attendre le tirage à 1%), pour tester l'affichage sans y passer la nuit.
+window.debug.unlockShiny = function (id) {
+  if (!POKEMON_BY_ID.has(id)) {
+    console.warn(`[debug.unlockShiny] Pokémon #${id} inconnu.`);
+    return;
+  }
+  unlockedShinies.add(id);
+  saveShinies(unlockedShinies);
+  if (quizPhase === "playing" && quizShowGrid) renderQuizPlaying();
+  if (quizPhase === "recap") renderRecap();
+  console.log(`[debug.unlockShiny] Shiny débloqué pour #${id}.`);
 };
