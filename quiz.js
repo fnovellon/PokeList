@@ -229,17 +229,6 @@ function computeQuizStats() {
     prevMs = entry.elapsedMs;
   }
 
-  const typeCounts = {};
-  quizFound.forEach((id) => {
-    pokemonTypes(POKEMON_BY_ID.get(id)).forEach((type) => {
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
-    });
-  });
-  let topType = null;
-  Object.entries(typeCounts).forEach(([type, n]) => {
-    if (!topType || n > topType.count) topType = { type, count: n };
-  });
-
   return {
     attempts,
     accuracy,
@@ -248,7 +237,6 @@ function computeQuizStats() {
     slowest,
     first: quizFindLog[0] || null,
     last: quizFindLog.length > 0 ? quizFindLog[quizFindLog.length - 1] : null,
-    topType,
   };
 }
 
@@ -313,12 +301,6 @@ function renderRecapStats() {
     const p = POKEMON_BY_ID.get(stats.last.id);
     tiles.push(
       statTileHtml("🏁", t("stats.last"), pokemonName(p), t("stats.foundAt", { time: formatDuration(stats.last.elapsedMs) }))
-    );
-  }
-
-  if (stats.topType) {
-    tiles.push(
-      statTileHtml("🔥", t("stats.topType"), stats.topType.type, t("stats.topTypeSub", { count: stats.topType.count }))
     );
   }
 
@@ -705,3 +687,23 @@ function applySharedQuizSettings(params) {
   quizOptGridEl.checked = params.get("grid") === "1";
   quizOptHintsEl.checked = params.get("hints") === "1";
 }
+
+// Commande de debug (à taper dans la console) : débloque instantanément tous
+// les Pokémon sauf Bulbizarre (#1), pour tester la fin de partie sans avoir à
+// tout retaper à la main. Sans effet hors d'une partie en cours.
+window.debugFillQuiz = function () {
+  if (quizPhase !== "playing") {
+    console.warn("[debugFillQuiz] Aucun quiz en cours.");
+    return;
+  }
+
+  POKEMON_GEN1.forEach((p) => {
+    if (p.id === 1 || quizFound.has(p.id)) return;
+    quizFound.add(p.id);
+    quizFindLog.push({ id: p.id, elapsedMs: Date.now() - quizStartedAt });
+  });
+
+  if (quizShowGrid) renderQuizPlaying();
+  updateQuizProgress();
+  console.log(`[debugFillQuiz] ${quizFound.size} / ${POKEMON_GEN1.length} débloqués (Bulbizarre exclu).`);
+};
