@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Copier le contenu de l'article
 // @namespace    https://github.com/fnovellon/pokelist
-// @version      2.1.0
+// @version      2.2.0
 // @description  Ajoute un bouton flottant qui copie uniquement le texte de l'article (sans menus, pub, commentaires...), y compris quand le contenu est dans une iframe (même cross-origin)
 // @author       fnovellon
-// @match        *://*/*
+// @match        *://*.padi.com/*
 // @grant        GM_setClipboard
 // @require      https://cdn.jsdelivr.net/npm/@mozilla/readability@0.5.0/Readability.js
 // @run-at       document-idle
