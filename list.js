@@ -6,6 +6,11 @@ const progressFillEl = document.getElementById("progress-fill");
 const progressTextEl = document.getElementById("progress-text");
 const checkAllBtn = document.getElementById("check-all");
 const uncheckAllBtn = document.getElementById("uncheck-all");
+const listGenTabBtns = document.querySelectorAll("#list-gen-tabs .gen-tab");
+
+// Onglet de génération affiché dans le mode Liste (indépendant de la
+// génération choisie dans le Quiz) ; non persisté, revient à Gen 1 au rechargement.
+let listGeneration = 1;
 
 function matchesQuery(pokemon, rawQuery) {
   if (!rawQuery) return true;
@@ -29,7 +34,7 @@ function matchesQuery(pokemon, rawQuery) {
 }
 
 function getVisiblePokemon(rawQuery) {
-  return POKEMON_GEN1.filter((p) => matchesQuery(p, rawQuery));
+  return pokemonsByGeneration(listGeneration).filter((p) => matchesQuery(p, rawQuery));
 }
 
 function loadCaught() {
@@ -46,9 +51,12 @@ function saveCaught(caughtSet) {
 
 let caught = loadCaught();
 
+// La barre de progression porte sur la génération affichée (onglet actif),
+// pas sur l'ensemble des 386 Pokémon.
 function updateProgress() {
-  const total = POKEMON_GEN1.length;
-  const count = caught.size;
+  const genPokemon = pokemonsByGeneration(listGeneration);
+  const total = genPokemon.length;
+  const count = genPokemon.filter((p) => caught.has(p.id)).length;
   progressFillEl.style.width = `${(count / total) * 100}%`;
   progressTextEl.textContent = t("list.progress", { count, total });
 }
@@ -82,7 +90,8 @@ function renderList() {
       if (checkbox.checked) {
         caught.add(pokemon.id);
         li.classList.add("caught");
-        if (caught.size === POKEMON_GEN1.length) celebrateConfetti();
+        const genPokemon = pokemonsByGeneration(listGeneration);
+        if (genPokemon.every((p) => caught.has(p.id))) celebrateConfetti();
       } else {
         caught.delete(pokemon.id);
         li.classList.remove("caught");
@@ -96,6 +105,15 @@ function renderList() {
 
   listEl.appendChild(fragment);
 }
+
+listGenTabBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    listGeneration = Number(btn.dataset.gen);
+    listGenTabBtns.forEach((b) => b.classList.toggle("active", b === btn));
+    renderList();
+    updateProgress();
+  });
+});
 
 searchEl.addEventListener("input", renderList);
 

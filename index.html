@@ -24,10 +24,12 @@
         aria-label="Accueil"
         title="Accueil"
       >🏠</button>
+      <button id="badges-btn" class="icon-btn" data-i18n-aria-label="badges.button" data-i18n-title="badges.button" aria-label="Badges" title="Badges">🏅</button>
       <select id="language-select" class="language-select" aria-label="Langue" data-i18n-aria-label="settings.language">
         <option value="fr">🇫🇷 FR</option>
         <option value="en">🇬🇧 EN</option>
         <option value="es">🇪🇸 ES</option>
+        <option value="de">🇩🇪 DE</option>
       </select>
       <button id="settings-btn" class="icon-btn" data-i18n-aria-label="settings.button" data-i18n-title="settings.button" aria-label="Réglages" title="Réglages">⚙️</button>
     </div>
@@ -39,7 +41,7 @@
         <button class="home-card" data-mode="list">
           <span class="home-card-icon">📋</span>
           <span class="home-card-title" data-i18n="home.listTitle">Mode Liste</span>
-          <span class="home-card-desc" data-i18n="home.listDesc">Coche les 151 Pokémon que tu as attrapés.</span>
+          <span class="home-card-desc" data-i18n="home.listDesc">Coche les Pokémon que tu as attrapés, génération par génération.</span>
           <span class="home-card-stat" id="home-list-stat">0 / 151</span>
         </button>
         <button class="home-card" data-mode="quiz">
@@ -51,6 +53,12 @@
     </section>
 
     <section id="view-list" class="view" hidden>
+      <div class="gen-tabs" id="list-gen-tabs">
+        <button class="gen-tab active" data-gen="1" data-i18n="gen.label1">Gen 1</button>
+        <button class="gen-tab" data-gen="2" data-i18n="gen.label2">Gen 2</button>
+        <button class="gen-tab" data-gen="3" data-i18n="gen.label3">Gen 3</button>
+      </div>
+
       <div class="progress">
         <div class="progress-bar">
           <div id="progress-fill" class="progress-fill"></div>
@@ -72,6 +80,24 @@
     <section id="view-quiz" class="view" hidden>
       <div id="quiz-setup" class="quiz-setup">
         <h2 data-i18n="quiz.setupTitle">Configurer le Quiz</h2>
+
+        <div class="settings-section">
+          <h3 data-i18n="gen.title">Génération</h3>
+          <div class="settings-options" id="quiz-gen-options">
+            <button class="settings-option settings-option-stacked active" data-gen="1">
+              <span data-i18n="gen.label1">Gen 1</span>
+              <span class="settings-option-sub" data-i18n="gen.range1">#001–151</span>
+            </button>
+            <button class="settings-option settings-option-stacked" data-gen="2">
+              <span data-i18n="gen.label2">Gen 2</span>
+              <span class="settings-option-sub" data-i18n="gen.range2">#152–251</span>
+            </button>
+            <button class="settings-option settings-option-stacked" data-gen="3">
+              <span data-i18n="gen.label3">Gen 3</span>
+              <span class="settings-option-sub" data-i18n="gen.range3">#252–386</span>
+            </button>
+          </div>
+        </div>
 
         <div class="settings-section">
           <h3 data-i18n="quiz.difficultyTitle">Difficulté</h3>
@@ -165,6 +191,7 @@
         <div class="quiz-recap-stat" id="quiz-recap-stat">0%</div>
         <p id="quiz-recap-text" class="quiz-recap-text"></p>
         <p id="quiz-recap-time" class="quiz-recap-time" hidden></p>
+        <p id="quiz-badge-banner" class="quiz-badge-banner" hidden></p>
         <div class="toolbar-buttons quiz-recap-actions">
           <button id="quiz-share-btn" data-i18n="quiz.share">📤 Partager</button>
           <button id="quiz-download-btn" data-i18n="quiz.download">🖼️ Télécharger l'image</button>
@@ -227,11 +254,22 @@
     </div>
   </div>
 
+  <div id="badges-overlay" class="settings-overlay" hidden>
+    <div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="badges-title">
+      <div class="settings-panel-header">
+        <h2 id="badges-title" data-i18n="badges.title">Badges</h2>
+        <button id="badges-close" class="settings-close" data-i18n-aria-label="settings.close" aria-label="Fermer">✕</button>
+      </div>
+      <div id="badges-list" class="badges-list"></div>
+    </div>
+  </div>
+
   <script src="version.js"></script>
   <script src="pokemon-data.js"></script>
   <script src="i18n.js"></script>
   <script src="matching.js"></script>
   <script src="settings.js"></script>
+  <script src="badges.js"></script>
   <script src="list.js"></script>
   <script src="quiz.js"></script>
   <script src="app.js"></script>

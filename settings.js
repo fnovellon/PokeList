@@ -1,6 +1,6 @@
 const SETTINGS_KEY = "pokelist-settings";
 const SPRITE_BASE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
-const SUPPORTED_LANGUAGES = ["fr", "en", "es"];
+const SUPPORTED_LANGUAGES = ["fr", "en", "es", "de"];
 
 // Langue du navigateur si elle est supportée, sinon anglais par défaut.
 function detectDefaultLanguage() {
@@ -86,6 +86,7 @@ function refreshLanguageDependentViews() {
   }
   if (quizPhase === "recap") renderRecap();
   updateHomeStats();
+  if (!badgesOverlay.hidden) renderBadgesModal();
 }
 
 function updateSettingsUI() {

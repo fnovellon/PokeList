@@ -1,2 +1,2 @@
 // Incrémentée à chaque commit (v1, v2, v3, ...)
-const APP_VERSION = "v33";
+const APP_VERSION = "v34";

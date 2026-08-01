@@ -16,6 +16,7 @@ const TYPE_COLORS = {
   Rock: "#b8a038",
   Ghost: "#705898",
   Dragon: "#7038f8",
+  Dark: "#705848",
   Steel: "#b8b8d0",
   Fairy: "#ee99ac",
 };
@@ -25,6 +26,7 @@ const quizSetupEl = document.getElementById("quiz-setup");
 const quizPlayingEl = document.getElementById("quiz-playing");
 const quizRecapEl = document.getElementById("quiz-recap");
 
+const quizGenBtns = document.querySelectorAll("#quiz-gen-options .settings-option");
 const quizPresetBtns = document.querySelectorAll("#quiz-preset-options .settings-option");
 const quizCustomOptionsEl = document.getElementById("quiz-custom-options");
 const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settings-option");
@@ -56,6 +58,7 @@ const quizTimerEl = document.getElementById("quiz-timer");
 const quizRecapStatEl = document.getElementById("quiz-recap-stat");
 const quizRecapTextEl = document.getElementById("quiz-recap-text");
 const quizRecapTimeEl = document.getElementById("quiz-recap-time");
+const quizBadgeBannerEl = document.getElementById("quiz-badge-banner");
 const quizRecapStatsEl = document.getElementById("quiz-recap-stats");
 const quizRecapListEl = document.getElementById("quiz-recap-list");
 const quizReplayBtn = document.getElementById("quiz-replay-btn");
@@ -73,6 +76,7 @@ let quizShowGrid = true;
 let quizShowHints = false;
 let quizHardcore = false;
 let quizPreset = "normal";
+let quizGeneration = 1;
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
 let quizElapsedMs = 0;
@@ -82,8 +86,15 @@ let justFoundId = null;
 let quizFindLog = []; // [{ id, elapsedMs }] dans l'ordre des trouvailles
 let quizWrongGuessCount = 0;
 
+// Pokémon en jeu pour la partie en cours : uniquement ceux de la génération
+// choisie en config, jamais les 386 (sinon deviner "Dracaufeu" pendant un
+// quiz Gen 2 marcherait, alors qu'il n'est pas dans le roster de la partie).
+function quizRoster() {
+  return pokemonsByGeneration(quizGeneration);
+}
+
 function updateQuizProgress() {
-  const total = POKEMON_GEN1.length;
+  const total = quizRoster().length;
   const count = quizFound.size;
   quizProgressFillEl.style.width = `${(count / total) * 100}%`;
   quizProgressTextEl.textContent = t("quiz.progress", { count, total });
@@ -145,7 +156,7 @@ function renderQuizPlaying() {
   quizListEl.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
-  for (const pokemon of POKEMON_GEN1) {
+  for (const pokemon of quizRoster()) {
     const isFound = quizFound.has(pokemon.id);
     const name = pokemonName(pokemon);
 
@@ -195,7 +206,8 @@ function addFoundChip(pokemon) {
 }
 
 function renderRecap() {
-  const total = POKEMON_GEN1.length;
+  const roster = quizRoster();
+  const total = roster.length;
   const count = quizFound.size;
   const percent = Math.round((count / total) * 100);
   quizRecapStatEl.textContent = `${percent}%`;
@@ -215,7 +227,7 @@ function renderRecap() {
   quizRecapListEl.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
-  for (const pokemon of POKEMON_GEN1) {
+  for (const pokemon of roster) {
     const isFound = quizFound.has(pokemon.id);
     const name = pokemonName(pokemon);
 
@@ -420,6 +432,17 @@ function endQuiz() {
   quizPlayingEl.hidden = true;
   quizRecapEl.hidden = false;
   renderRecap();
+
+  // Badge de génération : débloqué dès que tous les Pokémon du roster sont
+  // trouvés, peu importe le preset de difficulté utilisé pour y arriver.
+  const completedGen = quizFound.size === quizRoster().length;
+  if (completedGen && awardBadge(quizGeneration)) {
+    quizBadgeBannerEl.hidden = false;
+    quizBadgeBannerEl.textContent = t("quiz.badgeEarned", { gen: quizGeneration });
+  } else {
+    quizBadgeBannerEl.hidden = true;
+    quizBadgeBannerEl.textContent = "";
+  }
 }
 
 function backToSetup() {
@@ -495,6 +518,16 @@ quizPresetBtns.forEach((btn) => {
 });
 applyPreset(quizPreset);
 
+function applyGeneration(gen) {
+  quizGeneration = gen;
+  quizGenBtns.forEach((btn) => btn.classList.toggle("active", Number(btn.dataset.gen) === gen));
+}
+
+quizGenBtns.forEach((btn) => {
+  btn.addEventListener("click", () => applyGeneration(Number(btn.dataset.gen)));
+});
+applyGeneration(quizGeneration);
+
 quizStartBtn.addEventListener("click", startQuiz);
 quizEndBtn.addEventListener("click", () => {
   quizEndedByTimeout = false;
@@ -517,7 +550,8 @@ quizFormEl.addEventListener("submit", (event) => {
   const guess = quizInputEl.value.trim();
   if (!guess) return;
 
-  const match = POKEMON_GEN1.find((p) => !quizFound.has(p.id) && isCorrectGuess(guess, p));
+  const roster = quizRoster();
+  const match = roster.find((p) => !quizFound.has(p.id) && isCorrectGuess(guess, p));
 
   if (match) {
     quizFound.add(match.id);
@@ -533,7 +567,7 @@ quizFormEl.addEventListener("submit", (event) => {
     showQuizFeedback(t("quiz.feedbackCorrect", { name: pokemonName(match) }), "success");
     vibrate(25);
 
-    if (quizFound.size === POKEMON_GEN1.length) {
+    if (quizFound.size === roster.length) {
       quizEndedByTimeout = false;
       vibrate([60, 40, 60, 40, 120]);
       endQuiz();
@@ -541,7 +575,7 @@ quizFormEl.addEventListener("submit", (event) => {
       return;
     }
   } else {
-    const alreadyFound = POKEMON_GEN1.find((p) => quizFound.has(p.id) && isCorrectGuess(guess, p));
+    const alreadyFound = roster.find((p) => quizFound.has(p.id) && isCorrectGuess(guess, p));
     if (alreadyFound) {
       showQuizFeedback(t("quiz.feedbackAlreadyFound", { name: pokemonName(alreadyFound) }), null);
     } else {
@@ -559,6 +593,7 @@ quizFormEl.addEventListener("submit", (event) => {
 // d'égalité.
 function buildQuizShareUrl() {
   const params = new URLSearchParams();
+  params.set("gen", String(quizGeneration));
   params.set("minutes", String(quizMinutesUsed));
   params.set("types", quizShowTypes ? "1" : "0");
   params.set("grid", quizShowGrid ? "1" : "0");
@@ -626,7 +661,7 @@ function wrapCenteredText(ctx, text, centerX, y, maxWidth, lineHeight) {
 // Génère une image "carte de résultat" (façon aperçu de partage social).
 // Purement synchrone (aucune image externe à charger), pour rester rapide et
 // fiable même hors-ligne.
-function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
+function buildResultCardBlob({ percent, count, total, minutesLabel, gen, phrase }) {
   const width = 1200;
   const height = 630;
   const canvas = document.createElement("canvas");
@@ -652,7 +687,7 @@ function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
 
   ctx.fillStyle = "#1c1f2a";
   ctx.font = "700 32px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText(t("card.title"), centerX, pad + 70);
+  ctx.fillText(t("card.title", { gen }), centerX, pad + 70);
 
   ctx.fillStyle = "#3b6ce0";
   ctx.font = "800 168px 'Segoe UI', Arial, sans-serif";
@@ -676,33 +711,33 @@ function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
 // Résume le score courant (utilisé par le partage texte et le téléchargement
 // d'image, pour rester cohérents).
 function currentQuizSummary() {
-  const total = POKEMON_GEN1.length;
+  const total = quizRoster().length;
   const count = quizFound.size;
   const percent = Math.round((count / total) * 100);
   // Le temps affiché reflète la performance réelle, sauf si la partie s'est
   // arrêtée simplement parce que le temps imparti était écoulé (auquel cas
   // c'est juste la durée configurée).
   const minutesLabel = quizEndedByTimeout ? String(quizMinutesUsed) : elapsedMinutesLabel(quizElapsedMs);
-  return { total, count, percent, minutesLabel, phrase: scorePhraseFor(percent) };
+  return { total, count, percent, minutesLabel, gen: quizGeneration, phrase: scorePhraseFor(percent) };
 }
 
 // Partage uniquement le texte (avec le lien) : c'est la voie la plus fiable,
 // certaines cibles de partage natif ignorent le texte dès qu'une image est
 // jointe, ce qui faisait auparavant disparaître le lien.
 quizShareBtn.addEventListener("click", async () => {
-  const { count, percent, minutesLabel, phrase } = currentQuizSummary();
+  const { count, total, percent, minutesLabel, gen, phrase } = currentQuizSummary();
   const url = buildQuizShareUrl();
 
   const text = [
     phrase,
-    t("share.line2", { count, percent }),
+    t("share.line2", { count, total, gen, percent }),
     t("share.line3", { minutes: minutesLabel }),
     t("share.line4", { url }),
   ].join("\n");
 
   if (navigator.share) {
     try {
-      await navigator.share({ title: t("share.title"), text });
+      await navigator.share({ title: t("share.title", { gen }), text });
       return;
     } catch {
       // Partage annulé : on retente une copie presse-papiers ci-dessous.
@@ -720,14 +755,14 @@ quizShareBtn.addEventListener("click", async () => {
 // Télécharge la carte de résultat en image, complètement indépendamment du
 // partage natif (ce couplage causait des bugs selon les cibles de partage).
 quizDownloadBtn.addEventListener("click", async () => {
-  const { total, count, percent, minutesLabel, phrase } = currentQuizSummary();
+  const { total, count, percent, minutesLabel, gen, phrase } = currentQuizSummary();
 
   const originalLabel = quizDownloadBtn.textContent;
   quizDownloadBtn.disabled = true;
   quizDownloadBtn.textContent = t("quiz.generating");
 
   try {
-    const blob = await buildResultCardBlob({ percent, count, total, minutesLabel, phrase });
+    const blob = await buildResultCardBlob({ percent, count, total, minutesLabel, gen, phrase });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -748,6 +783,9 @@ quizDownloadBtn.addEventListener("click", async () => {
 // Reprend les réglages (temps, aides) d'une partie partagée via l'URL ; appelée
 // depuis app.js une fois la navigation entre modes disponible.
 function applySharedQuizSettings(params) {
+  const gen = Number(params.get("gen") ?? 1);
+  applyGeneration(GENERATIONS.includes(gen) ? gen : 1);
+
   const minutes = params.get("minutes");
   quizTimeOptionBtns.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.minutes === minutes);
@@ -768,22 +806,24 @@ function applySharedQuizSettings(params) {
 // Commandes de debug (à taper dans la console), namespacées sous `debug`.
 window.debug = window.debug || {};
 
-// debug.fillQuiz() : débloque instantanément tous les Pokémon sauf Bulbizarre
-// (#1), pour tester la fin de partie sans avoir à tout retaper à la main.
-// Sans effet hors d'une partie en cours.
+// debug.fillQuiz() : débloque instantanément tout le roster de la partie en
+// cours sauf son premier Pokémon, pour tester la fin de partie (et
+// l'obtention du badge) sans avoir à tout retaper à la main.
 window.debug.fillQuiz = function () {
   if (quizPhase !== "playing") {
     console.warn("[debug.fillQuiz] Aucun quiz en cours.");
     return;
   }
 
-  POKEMON_GEN1.forEach((p) => {
-    if (p.id === 1 || quizFound.has(p.id)) return;
+  const roster = quizRoster();
+  const keepHidden = roster[0]?.id;
+  roster.forEach((p) => {
+    if (p.id === keepHidden || quizFound.has(p.id)) return;
     quizFound.add(p.id);
     quizFindLog.push({ id: p.id, elapsedMs: Date.now() - quizStartedAt });
   });
 
   if (quizShowGrid) renderQuizPlaying();
   updateQuizProgress();
-  console.log(`[debug.fillQuiz] ${quizFound.size} / ${POKEMON_GEN1.length} débloqués (Bulbizarre exclu).`);
+  console.log(`[debug.fillQuiz] ${quizFound.size} / ${roster.length} débloqués (#${keepHidden} exclu).`);
 };
