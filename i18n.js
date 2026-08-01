@@ -1,0 +1,340 @@
+// Traductions de l'interface (FR/EN/ES). Les noms et types des Pokémon sont
+// gérés séparément dans pokemon-data.js (voir matching.js pour les helpers
+// pokemonName / pokemonTypes / pokemonNormalizedName).
+const TRANSLATIONS = {
+  fr: {
+    "app.title": "PokéList - Génération 1",
+    "nav.subtitle": "Génération 1",
+    "settings.button": "Réglages",
+
+    "nav.home": "🏠 Accueil",
+    "nav.list": "📋 Liste",
+    "nav.quiz": "❓ Quiz",
+
+    "home.listTitle": "Mode Liste",
+    "home.listDesc": "Coche les 151 Pokémon que tu as attrapés.",
+    "home.quizTitle": "Mode Quiz",
+    "home.quizDesc": "Devine le nom de chaque Pokémon caché, contre le chrono.",
+    "home.listStat": "{count} / {total} attrapés",
+
+    "list.searchPlaceholder": "Rechercher un Pokémon (nom ou numéro)...",
+    "list.checkAll": "Tout cocher",
+    "list.uncheckAll": "Tout décocher",
+    "list.progress": "{count} / {total} attrapés",
+
+    "quiz.setupTitle": "Configurer le Quiz",
+    "quiz.timeLimit": "Temps imparti",
+    "quiz.time5": "5 min",
+    "quiz.time10": "10 min",
+    "quiz.time15": "15 min",
+    "quiz.time30": "30 min",
+    "quiz.timeInfinite": "∞ Infini",
+    "quiz.helpTitle": "Aides",
+    "quiz.helpGrid": "🔢 Afficher la grille (numéros)",
+    "quiz.helpTypes": "🏷️ Afficher les types",
+    "quiz.helpFirstLetter": "🔤 Afficher la première lettre",
+    "quiz.start": "▶️ Commencer",
+    "quiz.inputPlaceholder": "Nom du Pokémon...",
+    "quiz.submit": "Valider",
+    "quiz.end": "Terminer",
+    "quiz.progress": "{count} / {total} trouvés",
+    "quiz.feedbackCorrect": "Bravo, c'était {name} !",
+    "quiz.feedbackAlreadyFound": "{name} a déjà été trouvé.",
+    "quiz.feedbackWrong": "Aucun Pokémon ne correspond, réessaie.",
+    "quiz.altHidden": "Pokémon non découvert",
+    "quiz.recapTitle": "Résultats",
+    "quiz.recapCount": "{count} / {total} Pokémon trouvés",
+    "quiz.recapTime": "⏱️ Temps : {time}",
+    "quiz.share": "📤 Partager",
+    "quiz.download": "🖼️ Télécharger l'image",
+    "quiz.generating": "⏳ Génération...",
+    "quiz.replay": "🔁 Rejouer",
+    "quiz.home": "🏠 Accueil",
+
+    "stats.accuracy": "Précision",
+    "stats.accuracySub": "{count} bonnes / {attempts} essais",
+    "stats.pace": "Rythme",
+    "stats.paceSub": "Pokémon trouvés par minute",
+    "stats.fastest": "Trouvaille éclair",
+    "stats.slowest": "Trouvaille la plus longue",
+    "stats.foundIn": "en {time}",
+    "stats.first": "Premier trouvé",
+    "stats.last": "Dernier trouvé",
+    "stats.foundAt": "à {time}",
+    "stats.topType": "Type dominant",
+    "stats.topTypeSub": "{count} fois",
+
+    "share.copied": "Message copié dans le presse-papiers !",
+    "share.copyFailed": "Impossible de copier le lien.",
+    "share.imageDownloaded": "Image téléchargée !",
+    "share.imageFailed": "Impossible de générer l'image.",
+    "share.title": "PokéList - Quiz Génération 1",
+    "share.line2": "{count}/151 Pokémon de Gen1 ({percent}%)",
+    "share.line3": "En seulement {minutes} min",
+    "share.line4": "Tente de me battre sur {url}",
+
+    "card.title": "🎮 PokéList — Quiz Génération 1",
+    "card.time": "⏱️ En seulement {minutes} min",
+
+    "settings.title": "Réglages",
+    "settings.close": "Fermer",
+    "settings.theme": "Thème",
+    "settings.themeAuto": "🔄 Auto",
+    "settings.themeLight": "☀️ Clair",
+    "settings.themeDark": "🌙 Sombre",
+    "settings.cardSize": "Taille des cartes",
+    "settings.sizeSmall": "Petite",
+    "settings.sizeMedium": "Moyenne",
+    "settings.sizeLarge": "Grande",
+    "settings.sprites": "Sprites",
+    "settings.animated": "🎞️ Sprites animés",
+    "settings.shiny": "✨ Variante Shiny",
+    "settings.language": "Langue",
+    "settings.resetTitle": "Réinitialiser la progression",
+    "settings.resetHint": "Le mode Quiz ne conserve rien d'une partie à l'autre.",
+    "settings.resetList": "Mode Liste",
+    "settings.resetConfirm": "Réinitialiser la progression du mode Liste ?",
+
+    "score.100": "🏆 151/151 : le Prof. Chen peut fermer le labo, j'ai tout vu !",
+    "score.90": "🔥 Quasi Maître Pokémon, il ne me manque presque rien !",
+    "score.75": "😎 Un sacré Dresseur, Team Rocket ferait mieux de fuir.",
+    "score.50": "🎯 Pas mal, mais la Ligue Pokémon peut encore attendre.",
+    "score.25": "🐢 Un Ramoloss aurait fait presque aussi bien que moi...",
+    "score.low": "🙈 Le Prof. Chen me regarde avec déception.",
+    "score.zero": "🥚 Même un Œuf s'en serait mieux sorti.",
+  },
+
+  en: {
+    "app.title": "PokéList - Generation 1",
+    "nav.subtitle": "Generation 1",
+    "settings.button": "Settings",
+
+    "nav.home": "🏠 Home",
+    "nav.list": "📋 List",
+    "nav.quiz": "❓ Quiz",
+
+    "home.listTitle": "List Mode",
+    "home.listDesc": "Check off the 151 Pokémon you've caught.",
+    "home.quizTitle": "Quiz Mode",
+    "home.quizDesc": "Guess every hidden Pokémon's name, against the clock.",
+    "home.listStat": "{count} / {total} caught",
+
+    "list.searchPlaceholder": "Search a Pokémon (name or number)...",
+    "list.checkAll": "Check all",
+    "list.uncheckAll": "Uncheck all",
+    "list.progress": "{count} / {total} caught",
+
+    "quiz.setupTitle": "Set up the Quiz",
+    "quiz.timeLimit": "Time limit",
+    "quiz.time5": "5 min",
+    "quiz.time10": "10 min",
+    "quiz.time15": "15 min",
+    "quiz.time30": "30 min",
+    "quiz.timeInfinite": "∞ Infinite",
+    "quiz.helpTitle": "Help",
+    "quiz.helpGrid": "🔢 Show the grid (numbers)",
+    "quiz.helpTypes": "🏷️ Show types",
+    "quiz.helpFirstLetter": "🔤 Show first letter",
+    "quiz.start": "▶️ Start",
+    "quiz.inputPlaceholder": "Pokémon name...",
+    "quiz.submit": "Submit",
+    "quiz.end": "Finish",
+    "quiz.progress": "{count} / {total} found",
+    "quiz.feedbackCorrect": "Nice, it was {name}!",
+    "quiz.feedbackAlreadyFound": "{name} was already found.",
+    "quiz.feedbackWrong": "No Pokémon matches, try again.",
+    "quiz.altHidden": "Undiscovered Pokémon",
+    "quiz.recapTitle": "Results",
+    "quiz.recapCount": "{count} / {total} Pokémon found",
+    "quiz.recapTime": "⏱️ Time: {time}",
+    "quiz.share": "📤 Share",
+    "quiz.download": "🖼️ Download image",
+    "quiz.generating": "⏳ Generating...",
+    "quiz.replay": "🔁 Play again",
+    "quiz.home": "🏠 Home",
+
+    "stats.accuracy": "Accuracy",
+    "stats.accuracySub": "{count} correct / {attempts} tries",
+    "stats.pace": "Pace",
+    "stats.paceSub": "Pokémon found per minute",
+    "stats.fastest": "Lightning find",
+    "stats.slowest": "Longest find",
+    "stats.foundIn": "in {time}",
+    "stats.first": "First found",
+    "stats.last": "Last found",
+    "stats.foundAt": "at {time}",
+    "stats.topType": "Top type",
+    "stats.topTypeSub": "{count} times",
+
+    "share.copied": "Message copied to clipboard!",
+    "share.copyFailed": "Couldn't copy the link.",
+    "share.imageDownloaded": "Image downloaded!",
+    "share.imageFailed": "Couldn't generate the image.",
+    "share.title": "PokéList - Generation 1 Quiz",
+    "share.line2": "{count}/151 Gen 1 Pokémon ({percent}%)",
+    "share.line3": "In just {minutes} min",
+    "share.line4": "Try to beat me at {url}",
+
+    "card.title": "🎮 PokéList — Generation 1 Quiz",
+    "card.time": "⏱️ In just {minutes} min",
+
+    "settings.title": "Settings",
+    "settings.close": "Close",
+    "settings.theme": "Theme",
+    "settings.themeAuto": "🔄 Auto",
+    "settings.themeLight": "☀️ Light",
+    "settings.themeDark": "🌙 Dark",
+    "settings.cardSize": "Card size",
+    "settings.sizeSmall": "Small",
+    "settings.sizeMedium": "Medium",
+    "settings.sizeLarge": "Large",
+    "settings.sprites": "Sprites",
+    "settings.animated": "🎞️ Animated sprites",
+    "settings.shiny": "✨ Shiny variant",
+    "settings.language": "Language",
+    "settings.resetTitle": "Reset progress",
+    "settings.resetHint": "Quiz mode doesn't keep anything between games.",
+    "settings.resetList": "List mode",
+    "settings.resetConfirm": "Reset List mode progress?",
+
+    "score.100": "🏆 151/151: Professor Oak can close the lab, I've seen it all!",
+    "score.90": "🔥 Nearly a Pokémon Master, barely anything left to find!",
+    "score.75": "😎 A solid Trainer — Team Rocket better watch out.",
+    "score.50": "🎯 Not bad, but the Pokémon League can still wait.",
+    "score.25": "🐢 A Slowpoke would've done almost as well...",
+    "score.low": "🙈 Professor Oak is giving me the disappointed look.",
+    "score.zero": "🥚 Even an Egg would've done better.",
+  },
+
+  es: {
+    "app.title": "PokéList - Generación 1",
+    "nav.subtitle": "Generación 1",
+    "settings.button": "Ajustes",
+
+    "nav.home": "🏠 Inicio",
+    "nav.list": "📋 Lista",
+    "nav.quiz": "❓ Quiz",
+
+    "home.listTitle": "Modo Lista",
+    "home.listDesc": "Marca los 151 Pokémon que has atrapado.",
+    "home.quizTitle": "Modo Quiz",
+    "home.quizDesc": "Adivina el nombre de cada Pokémon oculto, contrarreloj.",
+    "home.listStat": "{count} / {total} atrapados",
+
+    "list.searchPlaceholder": "Busca un Pokémon (nombre o número)...",
+    "list.checkAll": "Marcar todos",
+    "list.uncheckAll": "Desmarcar todos",
+    "list.progress": "{count} / {total} atrapados",
+
+    "quiz.setupTitle": "Configurar el Quiz",
+    "quiz.timeLimit": "Tiempo límite",
+    "quiz.time5": "5 min",
+    "quiz.time10": "10 min",
+    "quiz.time15": "15 min",
+    "quiz.time30": "30 min",
+    "quiz.timeInfinite": "∞ Infinito",
+    "quiz.helpTitle": "Ayudas",
+    "quiz.helpGrid": "🔢 Mostrar la cuadrícula (números)",
+    "quiz.helpTypes": "🏷️ Mostrar tipos",
+    "quiz.helpFirstLetter": "🔤 Mostrar la primera letra",
+    "quiz.start": "▶️ Empezar",
+    "quiz.inputPlaceholder": "Nombre del Pokémon...",
+    "quiz.submit": "Validar",
+    "quiz.end": "Terminar",
+    "quiz.progress": "{count} / {total} encontrados",
+    "quiz.feedbackCorrect": "¡Bien, era {name}!",
+    "quiz.feedbackAlreadyFound": "{name} ya ha sido encontrado.",
+    "quiz.feedbackWrong": "Ningún Pokémon coincide, inténtalo de nuevo.",
+    "quiz.altHidden": "Pokémon no descubierto",
+    "quiz.recapTitle": "Resultados",
+    "quiz.recapCount": "{count} / {total} Pokémon encontrados",
+    "quiz.recapTime": "⏱️ Tiempo: {time}",
+    "quiz.share": "📤 Compartir",
+    "quiz.download": "🖼️ Descargar imagen",
+    "quiz.generating": "⏳ Generando...",
+    "quiz.replay": "🔁 Jugar de nuevo",
+    "quiz.home": "🏠 Inicio",
+
+    "stats.accuracy": "Precisión",
+    "stats.accuracySub": "{count} correctas / {attempts} intentos",
+    "stats.pace": "Ritmo",
+    "stats.paceSub": "Pokémon encontrados por minuto",
+    "stats.fastest": "Hallazgo relámpago",
+    "stats.slowest": "Hallazgo más largo",
+    "stats.foundIn": "en {time}",
+    "stats.first": "Primero encontrado",
+    "stats.last": "Último encontrado",
+    "stats.foundAt": "a {time}",
+    "stats.topType": "Tipo dominante",
+    "stats.topTypeSub": "{count} veces",
+
+    "share.copied": "¡Mensaje copiado al portapapeles!",
+    "share.copyFailed": "No se pudo copiar el enlace.",
+    "share.imageDownloaded": "¡Imagen descargada!",
+    "share.imageFailed": "No se pudo generar la imagen.",
+    "share.title": "PokéList - Quiz Generación 1",
+    "share.line2": "{count}/151 Pokémon de Gen1 ({percent}%)",
+    "share.line3": "En solo {minutes} min",
+    "share.line4": "Intenta superarme en {url}",
+
+    "card.title": "🎮 PokéList — Quiz Generación 1",
+    "card.time": "⏱️ En solo {minutes} min",
+
+    "settings.title": "Ajustes",
+    "settings.close": "Cerrar",
+    "settings.theme": "Tema",
+    "settings.themeAuto": "🔄 Auto",
+    "settings.themeLight": "☀️ Claro",
+    "settings.themeDark": "🌙 Oscuro",
+    "settings.cardSize": "Tamaño de las tarjetas",
+    "settings.sizeSmall": "Pequeña",
+    "settings.sizeMedium": "Mediana",
+    "settings.sizeLarge": "Grande",
+    "settings.sprites": "Sprites",
+    "settings.animated": "🎞️ Sprites animados",
+    "settings.shiny": "✨ Variante Shiny",
+    "settings.language": "Idioma",
+    "settings.resetTitle": "Restablecer el progreso",
+    "settings.resetHint": "El modo Quiz no guarda nada de una partida a otra.",
+    "settings.resetList": "Modo Lista",
+    "settings.resetConfirm": "¿Restablecer el progreso del modo Lista?",
+
+    "score.100": "🏆 ¡151/151! El Profesor Oak puede cerrar el laboratorio, lo he visto todo.",
+    "score.90": "🔥 Casi Maestro Pokémon, ¡apenas me falta algo!",
+    "score.75": "😎 Un gran Entrenador — el Equipo Rocket debería tener cuidado.",
+    "score.50": "🎯 Nada mal, pero la Liga Pokémon puede esperar todavía.",
+    "score.25": "🐢 Un Slowpoke lo habría hecho casi igual de bien...",
+    "score.low": "🙈 El Profesor Oak me mira decepcionado.",
+    "score.zero": "🥚 Hasta un Huevo lo habría hecho mejor.",
+  },
+};
+
+function t(key, vars) {
+  const dict = TRANSLATIONS[settings.language] || TRANSLATIONS.fr;
+  let str = dict[key] ?? TRANSLATIONS.fr[key] ?? key;
+  if (vars) {
+    Object.entries(vars).forEach(([k, v]) => {
+      str = str.replaceAll(`{${k}}`, v);
+    });
+  }
+  return str;
+}
+
+// Applique les traductions à tout le DOM statique marqué avec data-i18n(-*).
+function applyTranslations() {
+  document.documentElement.lang = settings.language;
+  document.title = t("app.title");
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
+    el.setAttribute("aria-label", t(el.dataset.i18nAriaLabel));
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+}

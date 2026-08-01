@@ -14,12 +14,12 @@
 </head>
 <body>
   <header class="app-header">
-    <h1>PokéList <span class="subtitle">Génération 1</span> <span id="app-version" class="app-version"></span></h1>
-    <button id="settings-btn" class="settings-btn" aria-label="Réglages" title="Réglages">⚙️</button>
+    <h1>PokéList <span class="subtitle" data-i18n="nav.subtitle">Génération 1</span> <span id="app-version" class="app-version"></span></h1>
+    <button id="settings-btn" class="settings-btn" data-i18n-aria-label="settings.button" data-i18n-title="settings.button" aria-label="Réglages" title="Réglages">⚙️</button>
     <nav class="mode-nav">
-      <button class="mode-btn active" data-mode="home">🏠 Accueil</button>
-      <button class="mode-btn" data-mode="list">📋 Liste</button>
-      <button class="mode-btn" data-mode="quiz">❓ Quiz</button>
+      <button class="mode-btn active" data-mode="home" data-i18n="nav.home">🏠 Accueil</button>
+      <button class="mode-btn" data-mode="list" data-i18n="nav.list">📋 Liste</button>
+      <button class="mode-btn" data-mode="quiz" data-i18n="nav.quiz">❓ Quiz</button>
     </nav>
   </header>
 
@@ -28,14 +28,14 @@
       <div class="home-grid">
         <button class="home-card" data-mode="list">
           <span class="home-card-icon">📋</span>
-          <span class="home-card-title">Mode Liste</span>
-          <span class="home-card-desc">Coche les 151 Pokémon que tu as attrapés.</span>
-          <span class="home-card-stat" id="home-list-stat">0 / 151 attrapés</span>
+          <span class="home-card-title" data-i18n="home.listTitle">Mode Liste</span>
+          <span class="home-card-desc" data-i18n="home.listDesc">Coche les 151 Pokémon que tu as attrapés.</span>
+          <span class="home-card-stat" id="home-list-stat">0 / 151</span>
         </button>
         <button class="home-card" data-mode="quiz">
           <span class="home-card-icon">❓</span>
-          <span class="home-card-title">Mode Quiz</span>
-          <span class="home-card-desc">Devine le nom de chaque Pokémon caché, contre le chrono.</span>
+          <span class="home-card-title" data-i18n="home.quizTitle">Mode Quiz</span>
+          <span class="home-card-desc" data-i18n="home.quizDesc">Devine le nom de chaque Pokémon caché, contre le chrono.</span>
         </button>
       </div>
     </section>
@@ -45,14 +45,14 @@
         <div class="progress-bar">
           <div id="progress-fill" class="progress-fill"></div>
         </div>
-        <span id="progress-text">0 / 151 attrapés</span>
+        <span id="progress-text">0 / 151</span>
       </div>
 
       <div class="toolbar">
-        <input type="text" id="search" class="text-input" placeholder="Rechercher un Pokémon (nom ou numéro)..." />
+        <input type="text" id="search" class="text-input" data-i18n-placeholder="list.searchPlaceholder" placeholder="Rechercher un Pokémon (nom ou numéro)..." />
         <div class="toolbar-buttons">
-          <button id="check-all">Tout cocher</button>
-          <button id="uncheck-all">Tout décocher</button>
+          <button id="check-all" data-i18n="list.checkAll">Tout cocher</button>
+          <button id="uncheck-all" data-i18n="list.uncheckAll">Tout décocher</button>
         </div>
       </div>
 
@@ -61,39 +61,39 @@
 
     <section id="view-quiz" class="view" hidden>
       <div id="quiz-setup" class="quiz-setup">
-        <h2>Configurer le Quiz</h2>
+        <h2 data-i18n="quiz.setupTitle">Configurer le Quiz</h2>
 
         <div class="settings-section">
-          <h3>Temps imparti</h3>
+          <h3 data-i18n="quiz.timeLimit">Temps imparti</h3>
           <div class="settings-options" id="quiz-time-options">
-            <button class="settings-option" data-minutes="5">5 min</button>
-            <button class="settings-option" data-minutes="10">10 min</button>
-            <button class="settings-option" data-minutes="15">15 min</button>
-            <button class="settings-option" data-minutes="30">30 min</button>
-            <button class="settings-option active" data-minutes="0">∞ Infini</button>
+            <button class="settings-option" data-minutes="5" data-i18n="quiz.time5">5 min</button>
+            <button class="settings-option" data-minutes="10" data-i18n="quiz.time10">10 min</button>
+            <button class="settings-option" data-minutes="15" data-i18n="quiz.time15">15 min</button>
+            <button class="settings-option" data-minutes="30" data-i18n="quiz.time30">30 min</button>
+            <button class="settings-option active" data-minutes="0" data-i18n="quiz.timeInfinite">∞ Infini</button>
           </div>
         </div>
 
         <div class="settings-section">
-          <h3>Aides</h3>
+          <h3 data-i18n="quiz.helpTitle">Aides</h3>
           <label class="settings-toggle">
             <input type="checkbox" id="quiz-opt-grid" checked />
             <span class="switch"></span>
-            <span>🔢 Afficher la grille (numéros)</span>
+            <span data-i18n="quiz.helpGrid">🔢 Afficher la grille (numéros)</span>
           </label>
           <label class="settings-toggle settings-toggle-indented">
             <input type="checkbox" id="quiz-opt-types" />
             <span class="switch"></span>
-            <span>🏷️ Afficher les types</span>
+            <span data-i18n="quiz.helpTypes">🏷️ Afficher les types</span>
           </label>
           <label class="settings-toggle settings-toggle-indented">
             <input type="checkbox" id="quiz-opt-hints" />
             <span class="switch"></span>
-            <span>🔤 Afficher la première lettre</span>
+            <span data-i18n="quiz.helpFirstLetter">🔤 Afficher la première lettre</span>
           </label>
         </div>
 
-        <button id="quiz-start-btn" class="quiz-start-btn">▶️ Commencer</button>
+        <button id="quiz-start-btn" class="quiz-start-btn" data-i18n="quiz.start">▶️ Commencer</button>
       </div>
 
       <div id="quiz-playing" class="view" hidden>
@@ -101,7 +101,7 @@
           <div class="progress-bar">
             <div id="quiz-progress-fill" class="progress-fill"></div>
           </div>
-          <span id="quiz-progress-text">0 / 151 trouvés</span>
+          <span id="quiz-progress-text">0 / 151</span>
         </div>
 
         <form id="quiz-form" class="toolbar">
@@ -110,14 +110,15 @@
             type="text"
             id="quiz-input"
             class="text-input"
+            data-i18n-placeholder="quiz.inputPlaceholder"
             placeholder="Nom du Pokémon..."
             autocomplete="off"
             autocapitalize="off"
             spellcheck="false"
           />
           <div class="toolbar-buttons">
-            <button type="submit">Valider</button>
-            <button type="button" id="quiz-end-btn">Terminer</button>
+            <button type="submit" data-i18n="quiz.submit">Valider</button>
+            <button type="button" id="quiz-end-btn" data-i18n="quiz.end">Terminer</button>
           </div>
         </form>
         <p id="quiz-feedback" class="quiz-feedback" aria-live="polite"></p>
@@ -127,15 +128,15 @@
       </div>
 
       <div id="quiz-recap" class="view" hidden>
-        <h2>Résultats</h2>
+        <h2 data-i18n="quiz.recapTitle">Résultats</h2>
         <div class="quiz-recap-stat" id="quiz-recap-stat">0%</div>
         <p id="quiz-recap-text" class="quiz-recap-text"></p>
         <p id="quiz-recap-time" class="quiz-recap-time" hidden></p>
         <div class="toolbar-buttons quiz-recap-actions">
-          <button id="quiz-share-btn">📤 Partager</button>
-          <button id="quiz-download-btn">🖼️ Télécharger l'image</button>
-          <button id="quiz-replay-btn">🔁 Rejouer</button>
-          <button id="quiz-home-btn">🏠 Accueil</button>
+          <button id="quiz-share-btn" data-i18n="quiz.share">📤 Partager</button>
+          <button id="quiz-download-btn" data-i18n="quiz.download">🖼️ Télécharger l'image</button>
+          <button id="quiz-replay-btn" data-i18n="quiz.replay">🔁 Rejouer</button>
+          <button id="quiz-home-btn" data-i18n="quiz.home">🏠 Accueil</button>
         </div>
         <p id="quiz-share-feedback" class="quiz-share-feedback" aria-live="polite"></p>
         <div id="quiz-recap-stats" class="quiz-stats-grid" hidden></div>
@@ -147,47 +148,56 @@
   <div id="settings-overlay" class="settings-overlay" hidden>
     <div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div class="settings-panel-header">
-        <h2 id="settings-title">Réglages</h2>
-        <button id="settings-close" class="settings-close" aria-label="Fermer">✕</button>
+        <h2 id="settings-title" data-i18n="settings.title">Réglages</h2>
+        <button id="settings-close" class="settings-close" data-i18n-aria-label="settings.close" aria-label="Fermer">✕</button>
       </div>
 
       <div class="settings-section">
-        <h3>Thème</h3>
+        <h3 data-i18n="settings.language">Langue</h3>
         <div class="settings-options">
-          <button class="settings-option" data-setting="theme" data-value="auto">🔄 Auto</button>
-          <button class="settings-option" data-setting="theme" data-value="light">☀️ Clair</button>
-          <button class="settings-option" data-setting="theme" data-value="dark">🌙 Sombre</button>
+          <button class="settings-option" data-setting="language" data-value="fr">🇫🇷 Français</button>
+          <button class="settings-option" data-setting="language" data-value="en">🇬🇧 English</button>
+          <button class="settings-option" data-setting="language" data-value="es">🇪🇸 Español</button>
         </div>
       </div>
 
       <div class="settings-section">
-        <h3>Taille des cartes</h3>
+        <h3 data-i18n="settings.theme">Thème</h3>
         <div class="settings-options">
-          <button class="settings-option" data-setting="cardSize" data-value="small">Petite</button>
-          <button class="settings-option" data-setting="cardSize" data-value="medium">Moyenne</button>
-          <button class="settings-option" data-setting="cardSize" data-value="large">Grande</button>
+          <button class="settings-option" data-setting="theme" data-value="auto" data-i18n="settings.themeAuto">🔄 Auto</button>
+          <button class="settings-option" data-setting="theme" data-value="light" data-i18n="settings.themeLight">☀️ Clair</button>
+          <button class="settings-option" data-setting="theme" data-value="dark" data-i18n="settings.themeDark">🌙 Sombre</button>
         </div>
       </div>
 
       <div class="settings-section">
-        <h3>Sprites</h3>
+        <h3 data-i18n="settings.cardSize">Taille des cartes</h3>
+        <div class="settings-options">
+          <button class="settings-option" data-setting="cardSize" data-value="small" data-i18n="settings.sizeSmall">Petite</button>
+          <button class="settings-option" data-setting="cardSize" data-value="medium" data-i18n="settings.sizeMedium">Moyenne</button>
+          <button class="settings-option" data-setting="cardSize" data-value="large" data-i18n="settings.sizeLarge">Grande</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 data-i18n="settings.sprites">Sprites</h3>
         <label class="settings-toggle">
           <input type="checkbox" id="setting-animated" />
           <span class="switch"></span>
-          <span>🎞️ Sprites animés</span>
+          <span data-i18n="settings.animated">🎞️ Sprites animés</span>
         </label>
         <label class="settings-toggle">
           <input type="checkbox" id="setting-shiny" />
           <span class="switch"></span>
-          <span>✨ Variante Shiny</span>
+          <span data-i18n="settings.shiny">✨ Variante Shiny</span>
         </label>
       </div>
 
       <div class="settings-section">
-        <h3>Réinitialiser la progression</h3>
-        <p class="settings-hint">Le mode Quiz ne conserve rien d'une partie à l'autre.</p>
+        <h3 data-i18n="settings.resetTitle">Réinitialiser la progression</h3>
+        <p class="settings-hint" data-i18n="settings.resetHint">Le mode Quiz ne conserve rien d'une partie à l'autre.</p>
         <div class="settings-options">
-          <button id="settings-reset-list" class="settings-danger">Mode Liste</button>
+          <button id="settings-reset-list" class="settings-danger" data-i18n="settings.resetList">Mode Liste</button>
         </div>
       </div>
     </div>
@@ -195,6 +205,7 @@
 
   <script src="version.js"></script>
   <script src="pokemon-data.js"></script>
+  <script src="i18n.js"></script>
   <script src="matching.js"></script>
   <script src="settings.js"></script>
   <script src="list.js"></script>

@@ -1,24 +1,25 @@
-// Couleurs officielles par type, pour les badges d'aide.
+// Couleurs officielles par type, pour les badges d'aide. Clés en anglais
+// (langue-pivot stable) puisque le nom affiché dépend de la langue courante.
 const TYPE_COLORS = {
   Normal: "#a8a878",
-  Feu: "#f08030",
-  Eau: "#6890f0",
-  Plante: "#78c850",
-  Électrik: "#f8d030",
-  Glace: "#98d8d8",
-  Combat: "#c03028",
+  Fire: "#f08030",
+  Water: "#6890f0",
+  Grass: "#78c850",
+  Electric: "#f8d030",
+  Ice: "#98d8d8",
+  Fighting: "#c03028",
   Poison: "#a040a0",
-  Sol: "#e0c068",
-  Vol: "#a890f0",
-  Psy: "#f85888",
-  Insecte: "#a8b820",
-  Roche: "#b8a038",
-  Spectre: "#705898",
+  Ground: "#e0c068",
+  Flying: "#a890f0",
+  Psychic: "#f85888",
+  Bug: "#a8b820",
+  Rock: "#b8a038",
+  Ghost: "#705898",
   Dragon: "#7038f8",
-  Acier: "#b8b8d0",
-  Fée: "#ee99ac",
+  Steel: "#b8b8d0",
+  Fairy: "#ee99ac",
 };
-const TYPE_DARK_TEXT = new Set(["Électrik", "Sol", "Glace", "Acier", "Fée", "Normal"]);
+const TYPE_DARK_TEXT = new Set(["Electric", "Ground", "Ice", "Steel", "Fairy", "Normal"]);
 
 const quizSetupEl = document.getElementById("quiz-setup");
 const quizPlayingEl = document.getElementById("quiz-playing");
@@ -71,7 +72,7 @@ function updateQuizProgress() {
   const total = POKEMON_GEN1.length;
   const count = quizFound.size;
   quizProgressFillEl.style.width = `${(count / total) * 100}%`;
-  quizProgressTextEl.textContent = `${count} / ${total} trouvés`;
+  quizProgressTextEl.textContent = t("quiz.progress", { count, total });
 }
 
 // Validation stricte : contrairement à la recherche du mode Liste, une simple
@@ -80,10 +81,11 @@ function updateQuizProgress() {
 function isCorrectGuess(rawGuess, pokemon) {
   const guess = normalize(rawGuess);
   if (!guess) return false;
-  if (guess === pokemon.normalizedName) return true;
+  const normalizedName = pokemonNormalizedName(pokemon);
+  if (guess === normalizedName) return true;
 
-  const threshold = Math.max(1, Math.floor(pokemon.normalizedName.length * 0.25));
-  return levenshtein(guess, pokemon.normalizedName) <= threshold;
+  const threshold = Math.max(1, Math.floor(normalizedName.length * 0.25));
+  return levenshtein(guess, normalizedName) <= threshold;
 }
 
 function showQuizFeedback(message, tone) {
@@ -94,11 +96,14 @@ function showQuizFeedback(message, tone) {
 
 function typeBadgesHtml(pokemon) {
   if (!quizShowTypes) return "";
-  const badges = pokemon.types
-    .map((type) => {
-      const color = TYPE_COLORS[type] || "#888";
-      const textClass = TYPE_DARK_TEXT.has(type) ? "type-badge-dark" : "";
-      return `<span class="type-badge ${textClass}" style="background:${color}">${type}</span>`;
+  // Couleur/contraste basés sur le type anglais (stable), libellé dans la
+  // langue courante : les deux tableaux sont alignés par index.
+  const displayTypes = pokemonTypes(pokemon);
+  const badges = pokemon.types.en
+    .map((enType, i) => {
+      const color = TYPE_COLORS[enType] || "#888";
+      const textClass = TYPE_DARK_TEXT.has(enType) ? "type-badge-dark" : "";
+      return `<span class="type-badge ${textClass}" style="background:${color}">${displayTypes[i]}</span>`;
     })
     .join("");
   return `<div class="type-badges">${badges}</div>`;
@@ -108,8 +113,9 @@ function typeBadgesHtml(pokemon) {
 // entier, même pour les Pokémon les plus courts comme Mew ou Abo).
 function hintedPlaceholder(pokemon) {
   if (!quizShowHints) return "?????";
-  const revealed = pokemon.name.slice(0, 1);
-  const hidden = "?".repeat(Math.max(1, pokemon.name.length - 1));
+  const name = pokemonName(pokemon);
+  const revealed = name.slice(0, 1);
+  const hidden = "?".repeat(Math.max(1, name.length - 1));
   return `<span class="hint-revealed">${revealed}</span>${hidden}`;
 }
 
@@ -119,6 +125,7 @@ function renderQuizPlaying() {
 
   for (const pokemon of POKEMON_GEN1) {
     const isFound = quizFound.has(pokemon.id);
+    const name = pokemonName(pokemon);
 
     const li = document.createElement("li");
     li.className = "pokemon-card quiz-card";
@@ -130,12 +137,12 @@ function renderQuizPlaying() {
       <img
         class="pokemon-sprite quiz-sprite"
         src="${getSpriteUrl(pokemon.id)}"
-        alt="${isFound ? pokemon.name : "Pokémon non découvert"}"
+        alt="${isFound ? name : t("quiz.altHidden")}"
         loading="lazy"
       />
       <div class="quiz-info">
-        <span class="pokemon-name quiz-name" ${isFound ? `title="${pokemon.name}"` : ""}>${
-          isFound ? pokemon.name : hintedPlaceholder(pokemon)
+        <span class="pokemon-name quiz-name" ${isFound ? `title="${name}"` : ""}>${
+          isFound ? name : hintedPlaceholder(pokemon)
         }</span>
         ${typeBadgesHtml(pokemon)}
       </div>
@@ -155,11 +162,12 @@ function renderQuizPlaying() {
 }
 
 function addFoundChip(pokemon) {
+  const name = pokemonName(pokemon);
   const chip = document.createElement("span");
   chip.className = "found-chip";
   chip.innerHTML = `
-    <img class="found-chip-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${pokemon.name}" loading="lazy" />
-    <span>${formatNumber(pokemon.id)} ${pokemon.name}</span>
+    <img class="found-chip-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
+    <span>${formatNumber(pokemon.id)} ${name}</span>
   `;
   quizFoundChipsEl.appendChild(chip);
 }
@@ -169,7 +177,7 @@ function renderRecap() {
   const count = quizFound.size;
   const percent = Math.round((count / total) * 100);
   quizRecapStatEl.textContent = `${percent}%`;
-  quizRecapTextEl.textContent = `${count} / ${total} Pokémon trouvés`;
+  quizRecapTextEl.textContent = t("quiz.recapCount", { count, total });
 
   // Le temps n'est un résultat intéressant que si la partie ne s'est pas
   // arrêtée simplement parce que le temps imparti était écoulé.
@@ -177,7 +185,7 @@ function renderRecap() {
     quizRecapTimeEl.hidden = true;
   } else {
     quizRecapTimeEl.hidden = false;
-    quizRecapTimeEl.textContent = `⏱️ Temps : ${formatElapsed(quizElapsedMs)}`;
+    quizRecapTimeEl.textContent = t("quiz.recapTime", { time: formatElapsed(quizElapsedMs) });
   }
 
   renderRecapStats();
@@ -187,14 +195,15 @@ function renderRecap() {
 
   for (const pokemon of POKEMON_GEN1) {
     const isFound = quizFound.has(pokemon.id);
+    const name = pokemonName(pokemon);
 
     const li = document.createElement("li");
     li.className = `pokemon-card recap-card ${isFound ? "caught" : "missing"}`;
 
     li.innerHTML = `
       <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
-      <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${pokemon.name}" loading="lazy" />
-      <span class="pokemon-name">${pokemon.name}</span>
+      <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
+      <span class="pokemon-name">${name}</span>
     `;
 
     fragment.appendChild(li);
@@ -222,7 +231,7 @@ function computeQuizStats() {
 
   const typeCounts = {};
   quizFound.forEach((id) => {
-    POKEMON_BY_ID.get(id).types.forEach((type) => {
+    pokemonTypes(POKEMON_BY_ID.get(id)).forEach((type) => {
       typeCounts[type] = (typeCounts[type] || 0) + 1;
     });
   });
@@ -266,36 +275,51 @@ function renderRecapStats() {
 
   if (stats.accuracy !== null) {
     tiles.push(
-      statTileHtml("🎯", "Précision", `${stats.accuracy}%`, `${quizFound.size} bonnes / ${stats.attempts} essais`)
+      statTileHtml(
+        "🎯",
+        t("stats.accuracy"),
+        `${stats.accuracy}%`,
+        t("stats.accuracySub", { count: quizFound.size, attempts: stats.attempts })
+      )
     );
   }
 
   if (quizElapsedMs > 0) {
-    tiles.push(statTileHtml("⚡", "Rythme", `${stats.pace.toFixed(1)} /min`, "Pokémon trouvés par minute"));
+    tiles.push(statTileHtml("⚡", t("stats.pace"), `${stats.pace.toFixed(1)} /min`, t("stats.paceSub")));
   }
 
   if (stats.fastest) {
     const p = POKEMON_BY_ID.get(stats.fastest.id);
-    tiles.push(statTileHtml("🏃", "Trouvaille éclair", p.name, `en ${formatDuration(stats.fastest.delta)}`));
+    tiles.push(
+      statTileHtml("🏃", t("stats.fastest"), pokemonName(p), t("stats.foundIn", { time: formatDuration(stats.fastest.delta) }))
+    );
   }
 
   if (stats.slowest && stats.slowest.id !== stats.fastest?.id) {
     const p = POKEMON_BY_ID.get(stats.slowest.id);
-    tiles.push(statTileHtml("🐌", "Trouvaille la plus longue", p.name, `en ${formatDuration(stats.slowest.delta)}`));
+    tiles.push(
+      statTileHtml("🐌", t("stats.slowest"), pokemonName(p), t("stats.foundIn", { time: formatDuration(stats.slowest.delta) }))
+    );
   }
 
   if (stats.first) {
     const p = POKEMON_BY_ID.get(stats.first.id);
-    tiles.push(statTileHtml("🥇", "Premier trouvé", p.name, `à ${formatDuration(stats.first.elapsedMs)}`));
+    tiles.push(
+      statTileHtml("🥇", t("stats.first"), pokemonName(p), t("stats.foundAt", { time: formatDuration(stats.first.elapsedMs) }))
+    );
   }
 
   if (stats.last && stats.last.id !== stats.first?.id) {
     const p = POKEMON_BY_ID.get(stats.last.id);
-    tiles.push(statTileHtml("🏁", "Dernier trouvé", p.name, `à ${formatDuration(stats.last.elapsedMs)}`));
+    tiles.push(
+      statTileHtml("🏁", t("stats.last"), pokemonName(p), t("stats.foundAt", { time: formatDuration(stats.last.elapsedMs) }))
+    );
   }
 
   if (stats.topType) {
-    tiles.push(statTileHtml("🔥", "Type dominant", stats.topType.type, `${stats.topType.count} fois`));
+    tiles.push(
+      statTileHtml("🔥", t("stats.topType"), stats.topType.type, t("stats.topTypeSub", { count: stats.topType.count }))
+    );
   }
 
   quizRecapStatsEl.innerHTML = tiles.join("");
@@ -456,7 +480,7 @@ quizFormEl.addEventListener("submit", (event) => {
     }
     updateQuizProgress();
     quizInputEl.value = "";
-    showQuizFeedback(`Bravo, c'était ${match.name} !`, "success");
+    showQuizFeedback(t("quiz.feedbackCorrect", { name: pokemonName(match) }), "success");
     vibrate(25);
 
     if (quizFound.size === POKEMON_GEN1.length) {
@@ -469,10 +493,10 @@ quizFormEl.addEventListener("submit", (event) => {
   } else {
     const alreadyFound = POKEMON_GEN1.find((p) => quizFound.has(p.id) && isCorrectGuess(guess, p));
     if (alreadyFound) {
-      showQuizFeedback(`${alreadyFound.name} a déjà été trouvé.`, null);
+      showQuizFeedback(t("quiz.feedbackAlreadyFound", { name: pokemonName(alreadyFound) }), null);
     } else {
       quizWrongGuessCount += 1;
-      showQuizFeedback("Aucun Pokémon ne correspond, réessaie.", "error");
+      showQuizFeedback(t("quiz.feedbackWrong"), "error");
       vibrate([30, 30, 30]);
     }
   }
@@ -507,13 +531,13 @@ function showShareFeedback(message) {
 // Une pique ou un compliment selon le score, pour donner un peu de caractère
 // au message partagé.
 function scorePhraseFor(percent) {
-  if (percent === 100) return "🏆 151/151 : le Prof. Chen peut fermer le labo, j'ai tout vu !";
-  if (percent >= 90) return "🔥 Quasi Maître Pokémon, il ne me manque presque rien !";
-  if (percent >= 75) return "😎 Un sacré Dresseur, Team Rocket ferait mieux de fuir.";
-  if (percent >= 50) return "🎯 Pas mal, mais la Ligue Pokémon peut encore attendre.";
-  if (percent >= 25) return "🐢 Un Ramoloss aurait fait presque aussi bien que moi...";
-  if (percent > 0) return "🙈 Le Prof. Chen me regarde avec déception.";
-  return "🥚 Même un Œuf s'en serait mieux sorti.";
+  if (percent === 100) return t("score.100");
+  if (percent >= 90) return t("score.90");
+  if (percent >= 75) return t("score.75");
+  if (percent >= 50) return t("score.50");
+  if (percent >= 25) return t("score.25");
+  if (percent > 0) return t("score.low");
+  return t("score.zero");
 }
 
 function elapsedMinutesLabel(ms) {
@@ -577,7 +601,7 @@ function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
 
   ctx.fillStyle = "#1c1f2a";
   ctx.font = "700 32px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText("🎮 PokéList — Quiz Génération 1", centerX, pad + 70);
+  ctx.fillText(t("card.title"), centerX, pad + 70);
 
   ctx.fillStyle = "#3b6ce0";
   ctx.font = "800 168px 'Segoe UI', Arial, sans-serif";
@@ -585,11 +609,11 @@ function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
 
   ctx.fillStyle = "#676c7c";
   ctx.font = "600 36px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText(`${count} / ${total} Pokémon trouvés`, centerX, centerY + 90);
+  ctx.fillText(t("quiz.recapCount", { count, total }), centerX, centerY + 90);
 
   ctx.fillStyle = "#3b6ce0";
   ctx.font = "700 30px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText(`⏱️ En seulement ${minutesLabel} min`, centerX, centerY + 140);
+  ctx.fillText(t("card.time", { minutes: minutesLabel }), centerX, centerY + 140);
 
   ctx.fillStyle = "#1c1f2a";
   ctx.font = "500 27px 'Segoe UI', Arial, sans-serif";
@@ -620,14 +644,14 @@ quizShareBtn.addEventListener("click", async () => {
 
   const text = [
     phrase,
-    `${count}/151 Pokémon de Gen1 (${percent}%)`,
-    `En seulement ${minutesLabel} min`,
-    `Tente de me battre sur ${url}`,
+    t("share.line2", { count, percent }),
+    t("share.line3", { minutes: minutesLabel }),
+    t("share.line4", { url }),
   ].join("\n");
 
   if (navigator.share) {
     try {
-      await navigator.share({ title: "PokéList - Quiz Génération 1", text });
+      await navigator.share({ title: t("share.title"), text });
       return;
     } catch {
       // Partage annulé : on retente une copie presse-papiers ci-dessous.
@@ -636,9 +660,9 @@ quizShareBtn.addEventListener("click", async () => {
 
   try {
     await navigator.clipboard.writeText(text);
-    showShareFeedback("Message copié dans le presse-papiers !");
+    showShareFeedback(t("share.copied"));
   } catch {
-    showShareFeedback("Impossible de copier le lien.");
+    showShareFeedback(t("share.copyFailed"));
   }
 });
 
@@ -649,7 +673,7 @@ quizDownloadBtn.addEventListener("click", async () => {
 
   const originalLabel = quizDownloadBtn.textContent;
   quizDownloadBtn.disabled = true;
-  quizDownloadBtn.textContent = "⏳ Génération...";
+  quizDownloadBtn.textContent = t("quiz.generating");
 
   try {
     const blob = await buildResultCardBlob({ percent, count, total, minutesLabel, phrase });
@@ -661,9 +685,9 @@ quizDownloadBtn.addEventListener("click", async () => {
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    showShareFeedback("Image téléchargée !");
+    showShareFeedback(t("share.imageDownloaded"));
   } catch {
-    showShareFeedback("Impossible de générer l'image.");
+    showShareFeedback(t("share.imageFailed"));
   } finally {
     quizDownloadBtn.disabled = false;
     quizDownloadBtn.textContent = originalLabel;

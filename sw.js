@@ -1,4 +1,4 @@
-const SHELL_CACHE = "pokelist-shell-v1";
+const SHELL_CACHE = "pokelist-shell-v2";
 const SPRITE_CACHE = "pokelist-sprites-v1";
 
 const SHELL_ASSETS = [
@@ -7,6 +7,7 @@ const SHELL_ASSETS = [
   "./style.css",
   "./version.js",
   "./pokemon-data.js",
+  "./i18n.js",
   "./matching.js",
   "./settings.js",
   "./list.js",

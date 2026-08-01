@@ -57,11 +57,31 @@ function prefixEditDistance(query, target) {
   return Math.min(...dist[rows - 1]);
 }
 
+// Pré-calcule la version normalisée du nom dans chacune des 3 langues, pour ne
+// pas refaire ce travail à chaque recherche/validation.
 POKEMON_GEN1.forEach((p) => {
-  p.normalizedName = normalize(p.name);
+  p.normalizedNames = {
+    fr: normalize(p.names.fr),
+    en: normalize(p.names.en),
+    es: normalize(p.names.es),
+  };
 });
 
 const POKEMON_BY_ID = new Map(POKEMON_GEN1.map((p) => [p.id, p]));
+
+// Ces trois helpers lisent la langue courante (settings.language, défini dans
+// settings.js) : à utiliser partout où l'on affiche/compare un nom ou un type.
+function pokemonName(pokemon) {
+  return pokemon.names[settings.language] || pokemon.names.fr;
+}
+
+function pokemonTypes(pokemon) {
+  return pokemon.types[settings.language] || pokemon.types.fr;
+}
+
+function pokemonNormalizedName(pokemon) {
+  return pokemon.normalizedNames[settings.language] || pokemon.normalizedNames.fr;
+}
 
 function formatNumber(id) {
   return `#${String(id).padStart(3, "0")}`;

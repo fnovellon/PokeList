@@ -75,7 +75,7 @@ const views = {
 };
 
 function updateHomeStats() {
-  homeListStatEl.textContent = `${caught.size} / ${POKEMON_GEN1.length} attrapés`;
+  homeListStatEl.textContent = t("home.listStat", { count: caught.size, total: POKEMON_GEN1.length });
 }
 
 function goToMode(mode) {

@@ -15,13 +15,14 @@ function matchesQuery(pokemon, rawQuery) {
 
   const normQuery = normalize(rawQuery);
   if (!normQuery) return false;
-  if (pokemon.normalizedName.includes(normQuery)) return true;
+  const normalizedName = pokemonNormalizedName(pokemon);
+  if (normalizedName.includes(normQuery)) return true;
 
   // Tolère les fautes de frappe / saisies partielles (ex: "bulbizare" -> Bulbizarre,
   // "draco" -> Dracaufeu)
   if (normQuery.length >= 4) {
     const threshold = Math.max(1, Math.floor(normQuery.length * 0.3));
-    return prefixEditDistance(normQuery, pokemon.normalizedName) <= threshold;
+    return prefixEditDistance(normQuery, normalizedName) <= threshold;
   }
 
   return false;
@@ -49,7 +50,7 @@ function updateProgress() {
   const total = POKEMON_GEN1.length;
   const count = caught.size;
   progressFillEl.style.width = `${(count / total) * 100}%`;
-  progressTextEl.textContent = `${count} / ${total} attrapés`;
+  progressTextEl.textContent = t("list.progress", { count, total });
 }
 
 function renderList() {
@@ -64,12 +65,13 @@ function renderList() {
     if (caught.has(pokemon.id)) li.classList.add("caught");
 
     const checkboxId = `pokemon-${pokemon.id}`;
+    const name = pokemonName(pokemon);
 
     li.innerHTML = `
       <label for="${checkboxId}" class="pokemon-label">
         <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
-        <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${pokemon.name}" loading="lazy" />
-        <span class="pokemon-name" title="${pokemon.name}">${pokemon.name}</span>
+        <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
+        <span class="pokemon-name" title="${name}">${name}</span>
         <span class="check-badge" aria-hidden="true">✓</span>
       </label>
       <input type="checkbox" class="pokemon-checkbox" id="${checkboxId}" ${caught.has(pokemon.id) ? "checked" : ""} />

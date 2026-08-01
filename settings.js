@@ -1,7 +1,15 @@
 const SETTINGS_KEY = "pokelist-settings";
 const SPRITE_BASE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
+const SUPPORTED_LANGUAGES = ["fr", "en", "es"];
+
+// Langue du navigateur si elle est supportée, sinon anglais par défaut.
+function detectDefaultLanguage() {
+  const browserLang = (navigator.language || "en").slice(0, 2).toLowerCase();
+  return SUPPORTED_LANGUAGES.includes(browserLang) ? browserLang : "en";
+}
 
 const DEFAULT_SETTINGS = {
+  language: detectDefaultLanguage(), // fr | en | es
   theme: "auto", // auto | light | dark
   cardSize: "medium", // small | medium | large
   animated: true,
@@ -46,6 +54,7 @@ function applyCardSize() {
 
 applyTheme();
 applyCardSize();
+applyTranslations();
 
 const settingsBtn = document.getElementById("settings-btn");
 const settingsOverlay = document.getElementById("settings-overlay");
@@ -60,6 +69,20 @@ function refreshSpriteDependentViews() {
   renderList();
   if (quizPhase === "playing" && quizShowGrid) renderQuizPlaying();
   if (quizPhase === "recap") renderRecap();
+}
+
+// Les noms/types des Pokémon et tout le texte de l'interface changent avec
+// la langue : on retraduit le DOM statique et on redessine les vues dynamiques.
+function refreshLanguageDependentViews() {
+  applyTranslations();
+  renderList();
+  updateProgress();
+  if (quizPhase === "playing") {
+    if (quizShowGrid) renderQuizPlaying();
+    updateQuizProgress();
+  }
+  if (quizPhase === "recap") renderRecap();
+  updateHomeStats();
 }
 
 function updateSettingsUI() {
@@ -97,6 +120,7 @@ settingsOptionBtns.forEach((btn) => {
     updateSettingsUI();
     if (btn.dataset.setting === "theme") applyTheme();
     if (btn.dataset.setting === "cardSize") applyCardSize();
+    if (btn.dataset.setting === "language") refreshLanguageDependentViews();
   });
 });
 
@@ -113,7 +137,7 @@ shinyToggle.addEventListener("change", () => {
 });
 
 document.getElementById("settings-reset-list").addEventListener("click", () => {
-  if (!confirm("Réinitialiser la progression du mode Liste ?")) return;
+  if (!confirm(t("settings.resetConfirm"))) return;
   caught = new Set();
   localStorage.removeItem(STORAGE_KEY);
   renderList();
