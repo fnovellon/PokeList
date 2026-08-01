@@ -160,15 +160,20 @@ function renderQuizPlaying() {
   }
 }
 
+// Insère la puce à sa place dans l'ordre numérique (Pokédex), pas dans
+// l'ordre où les Pokémon ont été devinés.
 function addFoundChip(pokemon) {
   const name = pokemonName(pokemon);
   const chip = document.createElement("span");
   chip.className = "found-chip";
+  chip.dataset.id = pokemon.id;
   chip.innerHTML = `
     <img class="found-chip-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
     <span>${formatNumber(pokemon.id)} ${name}</span>
   `;
-  quizFoundChipsEl.appendChild(chip);
+
+  const nextChip = [...quizFoundChipsEl.children].find((c) => Number(c.dataset.id) > pokemon.id);
+  quizFoundChipsEl.insertBefore(chip, nextChip || null);
 }
 
 function renderRecap() {
