@@ -29,6 +29,7 @@ const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settin
 const quizOptTypesEl = document.getElementById("quiz-opt-types");
 const quizOptGridEl = document.getElementById("quiz-opt-grid");
 const quizOptHintsEl = document.getElementById("quiz-opt-hints");
+const quizOptHardcoreEl = document.getElementById("quiz-opt-hardcore");
 const quizStartBtn = document.getElementById("quiz-start-btn");
 
 const quizListEl = document.getElementById("quiz-list");
@@ -59,6 +60,7 @@ let quizDeadline = null; // timestamp ms, ou null si infini
 let quizShowTypes = false;
 let quizShowGrid = true;
 let quizShowHints = false;
+let quizHardcore = false;
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
 let quizElapsedMs = 0;
@@ -78,7 +80,15 @@ function updateQuizProgress() {
 // Validation stricte : contrairement à la recherche du mode Liste, une simple
 // saisie partielle (ex: "psi") ne doit pas suffire à trouver "Psykokwak" — il
 // faut écrire (à peu de fautes de frappe près) le nom complet.
+// En mode Hardcore, aucune tolérance aux fautes de frappe n'est appliquée :
+// seules la casse et la ponctuation restent ignorées (normalizeStrict).
 function isCorrectGuess(rawGuess, pokemon) {
+  if (quizHardcore) {
+    const strictGuess = normalizeStrict(rawGuess);
+    if (!strictGuess) return false;
+    return strictGuess === pokemonStrictNormalizedName(pokemon);
+  }
+
   const guess = normalize(rawGuess);
   if (!guess) return false;
   const normalizedName = pokemonNormalizedName(pokemon);
@@ -371,6 +381,7 @@ function startQuiz() {
   quizShowTypes = quizOptTypesEl.checked;
   quizShowGrid = quizOptGridEl.checked;
   quizShowHints = quizOptHintsEl.checked;
+  quizHardcore = quizOptHardcoreEl.checked;
   quizPhase = "playing";
 
   quizSetupEl.hidden = true;
@@ -495,6 +506,7 @@ function buildQuizShareUrl() {
   params.set("types", quizShowTypes ? "1" : "0");
   params.set("grid", quizShowGrid ? "1" : "0");
   params.set("hints", quizShowHints ? "1" : "0");
+  params.set("hardcore", quizHardcore ? "1" : "0");
 
   const url = new URL(location.href);
   url.search = params.toString();
@@ -686,6 +698,7 @@ function applySharedQuizSettings(params) {
   quizOptTypesEl.checked = params.get("types") === "1";
   quizOptGridEl.checked = params.get("grid") === "1";
   quizOptHintsEl.checked = params.get("hints") === "1";
+  quizOptHardcoreEl.checked = params.get("hardcore") === "1";
 }
 
 // Commandes de debug (à taper dans la console), namespacées sous `debug`.

@@ -11,6 +11,16 @@ function normalize(str) {
     .replace(/y/g, "i");
 }
 
+// Normalisation "stricte" pour le mode Hardcore du Quiz : la casse et la
+// ponctuation/espaces restent tolérées, mais les accents et lettres doivent
+// être exacts (contrairement à normalize(), aucun repli phonétique ou
+// suppression d'accent).
+function normalizeStrict(str) {
+  return str
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]/gu, "");
+}
+
 // Distance d'édition classique entre deux chaînes entières (insertions,
 // suppressions, substitutions). Utilisée pour valider une réponse complète.
 function levenshtein(a, b) {
@@ -65,6 +75,11 @@ POKEMON_GEN1.forEach((p) => {
     en: normalize(p.names.en),
     es: normalize(p.names.es),
   };
+  p.strictNormalizedNames = {
+    fr: normalizeStrict(p.names.fr),
+    en: normalizeStrict(p.names.en),
+    es: normalizeStrict(p.names.es),
+  };
 });
 
 const POKEMON_BY_ID = new Map(POKEMON_GEN1.map((p) => [p.id, p]));
@@ -81,6 +96,10 @@ function pokemonTypes(pokemon) {
 
 function pokemonNormalizedName(pokemon) {
   return pokemon.normalizedNames[settings.language] || pokemon.normalizedNames.fr;
+}
+
+function pokemonStrictNormalizedName(pokemon) {
+  return pokemon.strictNormalizedNames[settings.language] || pokemon.strictNormalizedNames.fr;
 }
 
 function formatNumber(id) {
