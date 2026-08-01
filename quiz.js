@@ -688,12 +688,15 @@ function applySharedQuizSettings(params) {
   quizOptHintsEl.checked = params.get("hints") === "1";
 }
 
-// Commande de debug (à taper dans la console) : débloque instantanément tous
-// les Pokémon sauf Bulbizarre (#1), pour tester la fin de partie sans avoir à
-// tout retaper à la main. Sans effet hors d'une partie en cours.
-window.debugFillQuiz = function () {
+// Commandes de debug (à taper dans la console), namespacées sous `debug`.
+window.debug = window.debug || {};
+
+// debug.fillQuiz() : débloque instantanément tous les Pokémon sauf Bulbizarre
+// (#1), pour tester la fin de partie sans avoir à tout retaper à la main.
+// Sans effet hors d'une partie en cours.
+window.debug.fillQuiz = function () {
   if (quizPhase !== "playing") {
-    console.warn("[debugFillQuiz] Aucun quiz en cours.");
+    console.warn("[debug.fillQuiz] Aucun quiz en cours.");
     return;
   }
 
@@ -705,5 +708,5 @@ window.debugFillQuiz = function () {
 
   if (quizShowGrid) renderQuizPlaying();
   updateQuizProgress();
-  console.log(`[debugFillQuiz] ${quizFound.size} / ${POKEMON_GEN1.length} débloqués (Bulbizarre exclu).`);
+  console.log(`[debug.fillQuiz] ${quizFound.size} / ${POKEMON_GEN1.length} débloqués (Bulbizarre exclu).`);
 };
