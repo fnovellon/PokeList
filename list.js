@@ -80,6 +80,7 @@ function renderList() {
       if (checkbox.checked) {
         caught.add(pokemon.id);
         li.classList.add("caught");
+        if (caught.size === POKEMON_GEN1.length) celebrateConfetti();
       } else {
         caught.delete(pokemon.id);
         li.classList.remove("caught");

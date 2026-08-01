@@ -61,6 +61,8 @@ POKEMON_GEN1.forEach((p) => {
   p.normalizedName = normalize(p.name);
 });
 
+const POKEMON_BY_ID = new Map(POKEMON_GEN1.map((p) => [p.id, p]));
+
 function formatNumber(id) {
   return `#${String(id).padStart(3, "0")}`;
 }

@@ -1,6 +1,54 @@
 const versionEl = document.getElementById("app-version");
 if (versionEl) versionEl.textContent = APP_VERSION;
 
+// Petite célébration en confettis, déclenchée à 100% de complétion (Liste ou
+// Quiz). Pur canvas, pas de dépendance externe.
+function celebrateConfetti() {
+  const canvas = document.createElement("canvas");
+  canvas.className = "confetti-canvas";
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+
+  const colors = ["#ef5350", "#3b6ce0", "#59b06b", "#f8d030", "#a040a0", "#ffffff"];
+  const particles = Array.from({ length: 140 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.4,
+    size: 6 + Math.random() * 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    speedY: 2 + Math.random() * 3,
+    speedX: -1.5 + Math.random() * 3,
+    rotation: Math.random() * 360,
+    rotationSpeed: -6 + Math.random() * 12,
+  }));
+
+  const duration = 2600;
+  const start = performance.now();
+
+  function frame(now) {
+    const elapsed = now - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p) => {
+      p.x += p.speedX;
+      p.y += p.speedY;
+      p.rotation += p.rotationSpeed;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      ctx.restore();
+    });
+    if (elapsed < duration) {
+      requestAnimationFrame(frame);
+    } else {
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
 const headerEl = document.querySelector(".app-header");
 
 // Hauteur cumulée des barres collantes (en-tête + barre du quiz), utilisée pour

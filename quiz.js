@@ -43,10 +43,12 @@ const quizTimerEl = document.getElementById("quiz-timer");
 const quizRecapStatEl = document.getElementById("quiz-recap-stat");
 const quizRecapTextEl = document.getElementById("quiz-recap-text");
 const quizRecapTimeEl = document.getElementById("quiz-recap-time");
+const quizRecapStatsEl = document.getElementById("quiz-recap-stats");
 const quizRecapListEl = document.getElementById("quiz-recap-list");
 const quizReplayBtn = document.getElementById("quiz-replay-btn");
 const quizHomeBtn = document.getElementById("quiz-home-btn");
 const quizShareBtn = document.getElementById("quiz-share-btn");
+const quizDownloadBtn = document.getElementById("quiz-download-btn");
 const quizShareFeedbackEl = document.getElementById("quiz-share-feedback");
 
 // Rien n'est persisté pour le Quiz : tout vit en mémoire le temps de la partie.
@@ -62,6 +64,8 @@ let quizElapsedMs = 0;
 let quizEndedByTimeout = false;
 let quizTimerHandle = null;
 let justFoundId = null;
+let quizFindLog = []; // [{ id, elapsedMs }] dans l'ordre des trouvailles
+let quizWrongGuessCount = 0;
 
 function updateQuizProgress() {
   const total = POKEMON_GEN1.length;
@@ -176,6 +180,8 @@ function renderRecap() {
     quizRecapTimeEl.textContent = `⏱️ Temps : ${formatElapsed(quizElapsedMs)}`;
   }
 
+  renderRecapStats();
+
   quizRecapListEl.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
@@ -197,6 +203,105 @@ function renderRecap() {
   quizRecapListEl.appendChild(fragment);
 }
 
+// Distance (en temps) entre deux trouvailles consécutives, ou depuis le début
+// pour la première : la plus courte et la plus longue font des stats amusantes.
+function computeQuizStats() {
+  const attempts = quizFound.size + quizWrongGuessCount;
+  const accuracy = attempts > 0 ? Math.round((quizFound.size / attempts) * 100) : null;
+  const pace = quizElapsedMs > 0 ? quizFound.size / (quizElapsedMs / 60000) : 0;
+
+  let fastest = null;
+  let slowest = null;
+  let prevMs = 0;
+  for (const entry of quizFindLog) {
+    const delta = entry.elapsedMs - prevMs;
+    if (!fastest || delta < fastest.delta) fastest = { id: entry.id, delta };
+    if (!slowest || delta > slowest.delta) slowest = { id: entry.id, delta };
+    prevMs = entry.elapsedMs;
+  }
+
+  const typeCounts = {};
+  quizFound.forEach((id) => {
+    POKEMON_BY_ID.get(id).types.forEach((type) => {
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+  });
+  let topType = null;
+  Object.entries(typeCounts).forEach(([type, n]) => {
+    if (!topType || n > topType.count) topType = { type, count: n };
+  });
+
+  return {
+    attempts,
+    accuracy,
+    pace,
+    fastest,
+    slowest,
+    first: quizFindLog[0] || null,
+    last: quizFindLog.length > 0 ? quizFindLog[quizFindLog.length - 1] : null,
+    topType,
+  };
+}
+
+function statTileHtml(icon, label, value, sub) {
+  return `
+    <div class="stat-tile">
+      <span class="stat-tile-icon">${icon}</span>
+      <span class="stat-tile-label">${label}</span>
+      <span class="stat-tile-value">${value}</span>
+      <span class="stat-tile-sub">${sub}</span>
+    </div>
+  `;
+}
+
+function renderRecapStats() {
+  if (quizFound.size === 0) {
+    quizRecapStatsEl.hidden = true;
+    quizRecapStatsEl.innerHTML = "";
+    return;
+  }
+
+  const stats = computeQuizStats();
+  const tiles = [];
+
+  if (stats.accuracy !== null) {
+    tiles.push(
+      statTileHtml("🎯", "Précision", `${stats.accuracy}%`, `${quizFound.size} bonnes / ${stats.attempts} essais`)
+    );
+  }
+
+  if (quizElapsedMs > 0) {
+    tiles.push(statTileHtml("⚡", "Rythme", `${stats.pace.toFixed(1)} /min`, "Pokémon trouvés par minute"));
+  }
+
+  if (stats.fastest) {
+    const p = POKEMON_BY_ID.get(stats.fastest.id);
+    tiles.push(statTileHtml("🏃", "Trouvaille éclair", p.name, `en ${formatDuration(stats.fastest.delta)}`));
+  }
+
+  if (stats.slowest && stats.slowest.id !== stats.fastest?.id) {
+    const p = POKEMON_BY_ID.get(stats.slowest.id);
+    tiles.push(statTileHtml("🐌", "Trouvaille la plus longue", p.name, `en ${formatDuration(stats.slowest.delta)}`));
+  }
+
+  if (stats.first) {
+    const p = POKEMON_BY_ID.get(stats.first.id);
+    tiles.push(statTileHtml("🥇", "Premier trouvé", p.name, `à ${formatDuration(stats.first.elapsedMs)}`));
+  }
+
+  if (stats.last && stats.last.id !== stats.first?.id) {
+    const p = POKEMON_BY_ID.get(stats.last.id);
+    tiles.push(statTileHtml("🏁", "Dernier trouvé", p.name, `à ${formatDuration(stats.last.elapsedMs)}`));
+  }
+
+  if (stats.topType) {
+    tiles.push(statTileHtml("🔥", "Type dominant", stats.topType.type, `${stats.topType.count} fois`));
+  }
+
+  quizRecapStatsEl.innerHTML = tiles.join("");
+  quizRecapStatsEl.hidden = false;
+}
+
 function selectedMinutes() {
   const active = document.querySelector("#quiz-time-options .settings-option.active");
   return Number(active?.dataset.minutes ?? 0);
@@ -214,6 +319,12 @@ function formatCountdown(remainingMs) {
 
 function formatElapsed(elapsedMs) {
   return padTime(Math.max(0, Math.floor(elapsedMs / 1000)));
+}
+
+// Format court pour les durées des stats (ex: "3s", ou "01:24" au-delà d'1 min).
+function formatDuration(ms) {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  return totalSeconds < 60 ? `${totalSeconds}s` : formatElapsed(ms);
 }
 
 // Le quiz a toujours un chrono : compte à rebours si un temps est imparti,
@@ -244,6 +355,8 @@ function startTimer() {
 function startQuiz() {
   quizFound = new Set();
   justFoundId = null;
+  quizFindLog = [];
+  quizWrongGuessCount = 0;
   const minutes = selectedMinutes();
   quizMinutesUsed = minutes;
   quizStartedAt = Date.now();
@@ -334,6 +447,7 @@ quizFormEl.addEventListener("submit", (event) => {
 
   if (match) {
     quizFound.add(match.id);
+    quizFindLog.push({ id: match.id, elapsedMs: Date.now() - quizStartedAt });
     justFoundId = match.id;
     if (quizShowGrid) {
       renderQuizPlaying();
@@ -349,6 +463,7 @@ quizFormEl.addEventListener("submit", (event) => {
       quizEndedByTimeout = false;
       vibrate([60, 40, 60, 40, 120]);
       endQuiz();
+      celebrateConfetti();
       return;
     }
   } else {
@@ -356,6 +471,7 @@ quizFormEl.addEventListener("submit", (event) => {
     if (alreadyFound) {
       showQuizFeedback(`${alreadyFound.name} a déjà été trouvé.`, null);
     } else {
+      quizWrongGuessCount += 1;
       showQuizFeedback("Aucun Pokémon ne correspond, réessaie.", "error");
       vibrate([30, 30, 30]);
     }
@@ -482,17 +598,24 @@ function buildResultCardBlob({ percent, count, total, minutesLabel, phrase }) {
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
 
-quizShareBtn.addEventListener("click", async () => {
+// Résume le score courant (utilisé par le partage texte et le téléchargement
+// d'image, pour rester cohérents).
+function currentQuizSummary() {
   const total = POKEMON_GEN1.length;
   const count = quizFound.size;
   const percent = Math.round((count / total) * 100);
   // Le temps affiché reflète la performance réelle, sauf si la partie s'est
   // arrêtée simplement parce que le temps imparti était écoulé (auquel cas
   // c'est juste la durée configurée).
-  const minutesLabel = quizEndedByTimeout
-    ? String(quizMinutesUsed)
-    : elapsedMinutesLabel(quizElapsedMs);
-  const phrase = scorePhraseFor(percent);
+  const minutesLabel = quizEndedByTimeout ? String(quizMinutesUsed) : elapsedMinutesLabel(quizElapsedMs);
+  return { total, count, percent, minutesLabel, phrase: scorePhraseFor(percent) };
+}
+
+// Partage uniquement le texte (avec le lien) : c'est la voie la plus fiable,
+// certaines cibles de partage natif ignorent le texte dès qu'une image est
+// jointe, ce qui faisait auparavant disparaître le lien.
+quizShareBtn.addEventListener("click", async () => {
+  const { count, percent, minutesLabel, phrase } = currentQuizSummary();
   const url = buildQuizShareUrl();
 
   const text = [
@@ -502,47 +625,48 @@ quizShareBtn.addEventListener("click", async () => {
     `Tente de me battre sur ${url}`,
   ].join("\n");
 
-  const originalLabel = quizShareBtn.textContent;
-  quizShareBtn.disabled = true;
-  quizShareBtn.textContent = "⏳ Génération...";
-
-  // Toujours copier le message (avec le lien) dans le presse-papiers : certaines
-  // cibles de partage natif ignorent le texte dès qu'une image est jointe, donc
-  // on ne compte pas uniquement sur navigator.share pour transmettre le lien.
-  let textCopied = false;
-  try {
-    await navigator.clipboard.writeText(text);
-    textCopied = true;
-  } catch {
-    // Presse-papiers indisponible (contexte non sécurisé, permissions...).
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "PokéList - Quiz Génération 1", text });
+      return;
+    } catch {
+      // Partage annulé : on retente une copie presse-papiers ci-dessous.
+    }
   }
 
   try {
-    const blob = await buildResultCardBlob({ percent, count, total, minutesLabel, phrase });
-    const file = blob && new File([blob], "pokelist-quiz.png", { type: "image/png" });
-
-    // Un seul appel à navigator.share, jamais deux à la suite : un deuxième
-    // appel après annulation du premier pouvait donner l'impression que
-    // l'image était partagée/collée en double.
-    if (file && navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ title: "PokéList - Quiz Génération 1", text, files: [file] });
-      showShareFeedback(textCopied ? "Image partagée (lien aussi copié) !" : "Image partagée !");
-      return;
-    }
-
-    if (navigator.share) {
-      await navigator.share({ title: "PokéList - Quiz Génération 1", text });
-      return;
-    }
-
-    showShareFeedback(textCopied ? "Message copié dans le presse-papiers !" : "Impossible de copier le lien.");
+    await navigator.clipboard.writeText(text);
+    showShareFeedback("Message copié dans le presse-papiers !");
   } catch {
-    // Partage annulé ou échoué : le message (avec le lien) reste de toute
-    // façon disponible dans le presse-papiers grâce à la copie faite plus haut.
-    if (textCopied) showShareFeedback("Partage annulé — le message reste copié dans le presse-papiers.");
+    showShareFeedback("Impossible de copier le lien.");
+  }
+});
+
+// Télécharge la carte de résultat en image, complètement indépendamment du
+// partage natif (ce couplage causait des bugs selon les cibles de partage).
+quizDownloadBtn.addEventListener("click", async () => {
+  const { total, count, percent, minutesLabel, phrase } = currentQuizSummary();
+
+  const originalLabel = quizDownloadBtn.textContent;
+  quizDownloadBtn.disabled = true;
+  quizDownloadBtn.textContent = "⏳ Génération...";
+
+  try {
+    const blob = await buildResultCardBlob({ percent, count, total, minutesLabel, phrase });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "pokelist-quiz-resultat.png";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    showShareFeedback("Image téléchargée !");
+  } catch {
+    showShareFeedback("Impossible de générer l'image.");
   } finally {
-    quizShareBtn.disabled = false;
-    quizShareBtn.textContent = originalLabel;
+    quizDownloadBtn.disabled = false;
+    quizDownloadBtn.textContent = originalLabel;
   }
 });
 
