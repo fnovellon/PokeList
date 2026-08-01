@@ -13,7 +13,6 @@ const DEFAULT_SETTINGS = {
   theme: "auto", // auto | light | dark
   cardSize: "medium", // small | medium | large
   animated: true,
-  shiny: false,
 };
 
 function loadSettings() {
@@ -30,11 +29,11 @@ function saveSettings() {
 
 let settings = loadSettings();
 
-// Choisit l'URL du sprite selon les réglages courants (animé et/ou shiny) ;
-// un Pokémon dont le Shiny a été débloqué (voir shiny.js) s'affiche toujours
-// en Shiny, même si le réglage global "Variante Shiny" est désactivé.
+// Choisit l'URL du sprite selon les réglages courants (animé) ; un Pokémon
+// dont le Shiny a été débloqué (voir shiny.js) s'affiche en Shiny, seul
+// moyen d'obtenir la variante depuis que le réglage global a été retiré.
 function getSpriteUrl(id) {
-  const shiny = settings.shiny || isShinyUnlocked(id);
+  const shiny = isShinyUnlocked(id);
   if (settings.animated) {
     return shiny
       ? `${SPRITE_BASE}/versions/generation-v/black-white/animated/shiny/${id}.gif`
@@ -69,7 +68,6 @@ const settingsCloseBtn = document.getElementById("settings-close");
 // (choix du temps) qui ne doivent pas être pilotés par cette logique.
 const settingsOptionBtns = document.querySelectorAll("#settings-overlay .settings-option");
 const animatedToggle = document.getElementById("setting-animated");
-const shinyToggle = document.getElementById("setting-shiny");
 
 function refreshSpriteDependentViews() {
   renderList();
@@ -97,7 +95,6 @@ function updateSettingsUI() {
     btn.classList.toggle("active", settings[btn.dataset.setting] === btn.dataset.value);
   });
   animatedToggle.checked = settings.animated;
-  shinyToggle.checked = settings.shiny;
 }
 
 function openSettings() {
@@ -142,12 +139,6 @@ animatedToggle.addEventListener("change", () => {
   refreshSpriteDependentViews();
 });
 
-shinyToggle.addEventListener("change", () => {
-  settings.shiny = shinyToggle.checked;
-  saveSettings();
-  refreshSpriteDependentViews();
-});
-
 document.getElementById("settings-reset-list").addEventListener("click", () => {
   if (!confirm(t("settings.resetConfirm"))) return;
   caught = new Set();
@@ -155,4 +146,12 @@ document.getElementById("settings-reset-list").addEventListener("click", () => {
   renderList();
   updateProgress();
   updateHomeStats();
+});
+
+// Efface tout le stockage local de l'app (progression, réglages, badges,
+// Shiny débloqués) et recharge la page pour repartir d'un état neuf.
+document.getElementById("settings-reset-all").addEventListener("click", () => {
+  if (!confirm(t("settings.resetAllConfirm"))) return;
+  localStorage.clear();
+  location.reload();
 });
