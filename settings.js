@@ -139,15 +139,6 @@ animatedToggle.addEventListener("change", () => {
   refreshSpriteDependentViews();
 });
 
-document.getElementById("settings-reset-list").addEventListener("click", () => {
-  if (!confirm(t("settings.resetConfirm"))) return;
-  caught = new Set();
-  localStorage.removeItem(STORAGE_KEY);
-  renderList();
-  updateProgress();
-  updateHomeStats();
-});
-
 // Efface tout le stockage local de l'app (progression, réglages, badges,
 // Shiny débloqués) et recharge la page pour repartir d'un état neuf.
 document.getElementById("settings-reset-all").addEventListener("click", () => {
