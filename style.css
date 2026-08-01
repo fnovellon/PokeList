@@ -735,9 +735,16 @@ body[data-card-size="small"] .pokemon-card {
 
 .badge-tile-icon {
   grid-row: 1 / 3;
-  font-size: 1.6rem;
-  display: flex;
-  align-items: center;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  align-self: center;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.badge-tile.badge-locked .badge-tile-icon {
+  filter: grayscale(1);
+  opacity: 0.45;
 }
 
 .badge-tile-label {

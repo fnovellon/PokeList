@@ -821,6 +821,7 @@ window.debug.fillQuiz = function () {
     if (p.id === keepHidden || quizFound.has(p.id)) return;
     quizFound.add(p.id);
     quizFindLog.push({ id: p.id, elapsedMs: Date.now() - quizStartedAt });
+    if (!quizShowGrid) addFoundChip(p);
   });
 
   if (quizShowGrid) renderQuizPlaying();

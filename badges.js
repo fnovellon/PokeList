@@ -17,6 +17,16 @@ function saveBadges(badgeSet) {
 
 let earnedBadges = loadBadges();
 
+// Vrais sprites d'arènes PokeAPI (le badge final de chaque région, symbole de
+// la région entièrement complétée) : Terre (Kanto #8), Ascension (Johto #16),
+// Pluie (Hoenn #24).
+const BADGE_SPRITE_BASE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/badges";
+const GEN_BADGE_SPRITE_ID = { 1: 8, 2: 16, 3: 24 };
+
+function badgeSpriteUrl(gen) {
+  return `${BADGE_SPRITE_BASE}/${GEN_BADGE_SPRITE_ID[gen]}.png`;
+}
+
 function hasBadge(gen) {
   return earnedBadges.has(gen);
 }
@@ -42,7 +52,7 @@ function renderBadgesModal() {
     const earned = hasBadge(gen);
     return `
       <div class="badge-tile ${earned ? "badge-earned" : "badge-locked"}">
-        <span class="badge-tile-icon">${earned ? "🏅" : "🔒"}</span>
+        <img class="badge-tile-icon" src="${badgeSpriteUrl(gen)}" alt="${t(`gen.label${gen}`)}" loading="lazy" />
         <span class="badge-tile-label">${t(`gen.label${gen}`)}</span>
         <span class="badge-tile-state">${earned ? t("badges.earned") : t("badges.locked")}</span>
         <span class="badge-tile-desc">${t("badges.desc", { count, gen })}</span>

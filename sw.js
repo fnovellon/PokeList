@@ -45,7 +45,10 @@ self.addEventListener("fetch", (event) => {
 
   // Sprites PokeAPI : cache-first, mis en cache au fil de la navigation pour un
   // usage hors-ligne progressif (un Pokémon déjà vu reste visible sans réseau).
-  if (url.hostname === "raw.githubusercontent.com" && url.pathname.includes("/sprites/pokemon/")) {
+  if (
+    url.hostname === "raw.githubusercontent.com" &&
+    (url.pathname.includes("/sprites/pokemon/") || url.pathname.includes("/sprites/badges/"))
+  ) {
     event.respondWith(
       caches.open(SPRITE_CACHE).then(async (cache) => {
         const cached = await cache.match(request);
