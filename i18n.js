@@ -7,9 +7,7 @@ const TRANSLATIONS = {
     "nav.subtitle": "Génération 1",
     "settings.button": "Réglages",
 
-    "nav.home": "🏠 Accueil",
-    "nav.list": "📋 Liste",
-    "nav.quiz": "❓ Quiz",
+    "nav.home": "Accueil",
 
     "home.listTitle": "Mode Liste",
     "home.listDesc": "Coche les 151 Pokémon que tu as attrapés.",
@@ -109,9 +107,7 @@ const TRANSLATIONS = {
     "nav.subtitle": "Generation 1",
     "settings.button": "Settings",
 
-    "nav.home": "🏠 Home",
-    "nav.list": "📋 List",
-    "nav.quiz": "❓ Quiz",
+    "nav.home": "Home",
 
     "home.listTitle": "List Mode",
     "home.listDesc": "Check off the 151 Pokémon you've caught.",
@@ -211,9 +207,7 @@ const TRANSLATIONS = {
     "nav.subtitle": "Generación 1",
     "settings.button": "Ajustes",
 
-    "nav.home": "🏠 Inicio",
-    "nav.list": "📋 Lista",
-    "nav.quiz": "❓ Quiz",
+    "nav.home": "Inicio",
 
     "home.listTitle": "Modo Lista",
     "home.listDesc": "Marca los 151 Pokémon que has atrapado.",
