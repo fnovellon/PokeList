@@ -25,12 +25,23 @@ const quizSetupEl = document.getElementById("quiz-setup");
 const quizPlayingEl = document.getElementById("quiz-playing");
 const quizRecapEl = document.getElementById("quiz-recap");
 
+const quizPresetBtns = document.querySelectorAll("#quiz-preset-options .settings-option");
+const quizCustomOptionsEl = document.getElementById("quiz-custom-options");
 const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settings-option");
 const quizOptTypesEl = document.getElementById("quiz-opt-types");
 const quizOptGridEl = document.getElementById("quiz-opt-grid");
 const quizOptHintsEl = document.getElementById("quiz-opt-hints");
 const quizOptHardcoreEl = document.getElementById("quiz-opt-hardcore");
 const quizStartBtn = document.getElementById("quiz-start-btn");
+
+// Les 4 presets fixent temps + aides + tolérance orthographique en un clic ;
+// "Custom" laisse les réglages détaillés visibles pour un réglage manuel.
+const QUIZ_PRESETS = {
+  easy: { minutes: 0, grid: true, types: true, hints: true, hardcore: false },
+  normal: { minutes: 0, grid: false, types: false, hints: false, hardcore: false },
+  hard: { minutes: 10, grid: false, types: false, hints: false, hardcore: false },
+  veryHard: { minutes: 10, grid: false, types: false, hints: false, hardcore: true },
+};
 
 const quizListEl = document.getElementById("quiz-list");
 const quizFoundChipsEl = document.getElementById("quiz-found-chips");
@@ -61,6 +72,7 @@ let quizShowTypes = false;
 let quizShowGrid = true;
 let quizShowHints = false;
 let quizHardcore = false;
+let quizPreset = "normal";
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
 let quizElapsedMs = 0;
@@ -436,7 +448,52 @@ function syncGridDependentOptions() {
 }
 
 quizOptGridEl.addEventListener("change", syncGridDependentOptions);
-syncGridDependentOptions();
+
+// Applique un preset (temps + aides + tolérance orthographique) en un clic,
+// ou révèle les réglages détaillés pour "Custom" sans toucher à leurs valeurs
+// actuelles (pratique pour partir d'un preset et l'ajuster).
+function applyPreset(presetKey) {
+  quizPreset = presetKey;
+  quizPresetBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.preset === presetKey));
+  quizCustomOptionsEl.hidden = presetKey !== "custom";
+  if (presetKey === "custom") return;
+
+  const preset = QUIZ_PRESETS[presetKey];
+  quizTimeOptionBtns.forEach((btn) => {
+    btn.classList.toggle("active", Number(btn.dataset.minutes) === preset.minutes);
+  });
+  quizOptGridEl.checked = preset.grid;
+  quizOptTypesEl.checked = preset.types;
+  quizOptHintsEl.checked = preset.hints;
+  quizOptHardcoreEl.checked = preset.hardcore;
+  syncGridDependentOptions();
+}
+
+// Devine si la combinaison de réglages courante correspond à l'un des 4
+// presets (ex: après restauration d'une partie partagée), sinon "custom".
+function detectPresetFromCurrentOptions() {
+  const current = {
+    minutes: selectedMinutes(),
+    grid: quizOptGridEl.checked,
+    types: quizOptTypesEl.checked,
+    hints: quizOptHintsEl.checked,
+    hardcore: quizOptHardcoreEl.checked,
+  };
+  const match = Object.entries(QUIZ_PRESETS).find(
+    ([, preset]) =>
+      preset.minutes === current.minutes &&
+      preset.grid === current.grid &&
+      preset.types === current.types &&
+      preset.hints === current.hints &&
+      preset.hardcore === current.hardcore
+  );
+  return match ? match[0] : "custom";
+}
+
+quizPresetBtns.forEach((btn) => {
+  btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+});
+applyPreset(quizPreset);
 
 quizStartBtn.addEventListener("click", startQuiz);
 quizEndBtn.addEventListener("click", () => {
@@ -699,6 +756,13 @@ function applySharedQuizSettings(params) {
   quizOptGridEl.checked = params.get("grid") === "1";
   quizOptHintsEl.checked = params.get("hints") === "1";
   quizOptHardcoreEl.checked = params.get("hardcore") === "1";
+
+  // Affiche le preset correspondant s'il y en a un, sinon bascule sur
+  // "Custom" pour révéler les réglages détaillés restaurés depuis le lien.
+  const detected = detectPresetFromCurrentOptions();
+  quizPreset = detected;
+  quizPresetBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.preset === detected));
+  quizCustomOptionsEl.hidden = detected !== "custom";
 }
 
 // Commandes de debug (à taper dans la console), namespacées sous `debug`.
