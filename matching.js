@@ -114,3 +114,43 @@ function pokemonStrictNormalizedName(pokemon) {
 function formatNumber(id) {
   return `#${String(id).padStart(3, "0")}`;
 }
+
+// Couleurs officielles par type, pour les badges affichés en mode Liste et
+// Quiz. Clés en anglais (langue-pivot stable) puisque le nom affiché dépend
+// de la langue courante.
+const TYPE_COLORS = {
+  Normal: "#a8a878",
+  Fire: "#f08030",
+  Water: "#6890f0",
+  Grass: "#78c850",
+  Electric: "#f8d030",
+  Ice: "#98d8d8",
+  Fighting: "#c03028",
+  Poison: "#a040a0",
+  Ground: "#e0c068",
+  Flying: "#a890f0",
+  Psychic: "#f85888",
+  Bug: "#a8b820",
+  Rock: "#b8a038",
+  Ghost: "#705898",
+  Dragon: "#7038f8",
+  Dark: "#705848",
+  Steel: "#b8b8d0",
+  Fairy: "#ee99ac",
+};
+const TYPE_DARK_TEXT = new Set(["Electric", "Ground", "Ice", "Steel", "Fairy", "Normal"]);
+
+// Construit le HTML des badges de type d'un Pokémon (toujours affichés, sans
+// condition) ; utilisé tel quel par le mode Liste, et enveloppé d'une
+// condition d'affichage par le mode Quiz (voir typeBadgesHtml dans quiz.js).
+function renderTypeBadges(pokemon) {
+  const displayTypes = pokemonTypes(pokemon);
+  const badges = pokemon.types.en
+    .map((enType, i) => {
+      const color = TYPE_COLORS[enType] || "#888";
+      const textClass = TYPE_DARK_TEXT.has(enType) ? "type-badge-dark" : "";
+      return `<span class="type-badge ${textClass}" style="background:${color}">${displayTypes[i]}</span>`;
+    })
+    .join("");
+  return `<div class="type-badges">${badges}</div>`;
+}

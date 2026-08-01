@@ -1,27 +1,3 @@
-// Couleurs officielles par type, pour les badges d'aide. Clés en anglais
-// (langue-pivot stable) puisque le nom affiché dépend de la langue courante.
-const TYPE_COLORS = {
-  Normal: "#a8a878",
-  Fire: "#f08030",
-  Water: "#6890f0",
-  Grass: "#78c850",
-  Electric: "#f8d030",
-  Ice: "#98d8d8",
-  Fighting: "#c03028",
-  Poison: "#a040a0",
-  Ground: "#e0c068",
-  Flying: "#a890f0",
-  Psychic: "#f85888",
-  Bug: "#a8b820",
-  Rock: "#b8a038",
-  Ghost: "#705898",
-  Dragon: "#7038f8",
-  Dark: "#705848",
-  Steel: "#b8b8d0",
-  Fairy: "#ee99ac",
-};
-const TYPE_DARK_TEXT = new Set(["Electric", "Ground", "Ice", "Steel", "Fairy", "Normal"]);
-
 const quizSetupEl = document.getElementById("quiz-setup");
 const quizPlayingEl = document.getElementById("quiz-playing");
 const quizRecapEl = document.getElementById("quiz-recap");
@@ -129,17 +105,7 @@ function showQuizFeedback(message, tone) {
 
 function typeBadgesHtml(pokemon) {
   if (!quizShowTypes) return "";
-  // Couleur/contraste basés sur le type anglais (stable), libellé dans la
-  // langue courante : les deux tableaux sont alignés par index.
-  const displayTypes = pokemonTypes(pokemon);
-  const badges = pokemon.types.en
-    .map((enType, i) => {
-      const color = TYPE_COLORS[enType] || "#888";
-      const textClass = TYPE_DARK_TEXT.has(enType) ? "type-badge-dark" : "";
-      return `<span class="type-badge ${textClass}" style="background:${color}">${displayTypes[i]}</span>`;
-    })
-    .join("");
-  return `<div class="type-badges">${badges}</div>`;
+  return renderTypeBadges(pokemon);
 }
 
 // Affiche la première lettre du nom si l'aide est activée (jamais le nom
@@ -173,7 +139,7 @@ function renderQuizPlaying() {
         alt="${isFound ? name : t("quiz.altHidden")}"
         loading="lazy"
       />
-      <div class="quiz-info">
+      <div class="pokemon-info">
         <span class="pokemon-name quiz-name" ${isFound ? `title="${name}"` : ""}>${
           isFound ? name : hintedPlaceholder(pokemon)
         }</span>
