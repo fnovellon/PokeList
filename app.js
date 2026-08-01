@@ -66,25 +66,18 @@ updateStickyOffsets();
 window.addEventListener("resize", updateStickyOffsets);
 
 const modeButtons = document.querySelectorAll(".mode-btn");
-const homeCards = document.querySelectorAll(".home-card");
-const homeListStatEl = document.getElementById("home-list-stat");
 const views = {
-  home: document.getElementById("view-home"),
   list: document.getElementById("view-list"),
   quiz: document.getElementById("view-quiz"),
 };
 
-function updateHomeStats() {
-  homeListStatEl.textContent = t("home.listStat", { count: caught.size, total: POKEMON_GEN1.length });
-}
-
+// L'accueil est la config du Quiz elle-même (icône "maison" du header) ; le
+// mode Liste ne vit plus que derrière sa propre icône.
 function goToMode(mode) {
   modeButtons.forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
   Object.entries(views).forEach(([key, view]) => {
     view.hidden = key !== mode;
   });
-
-  if (mode === "home") updateHomeStats();
 
   // Un Shiny peut avoir été débloqué pendant une partie de Quiz : on
   // rafraîchit la Liste à chaque fois qu'on y entre pour rester à jour.
@@ -101,12 +94,6 @@ function goToMode(mode) {
 modeButtons.forEach((btn) => {
   btn.addEventListener("click", () => goToMode(btn.dataset.mode));
 });
-
-homeCards.forEach((card) => {
-  card.addEventListener("click", () => goToMode(card.dataset.mode));
-});
-
-updateHomeStats();
 
 // Un lien de partage (bouton "Partager" du récap Quiz) atterrit ici avec des
 // paramètres d'URL : on reprend directement ces réglages sur l'écran Quiz.

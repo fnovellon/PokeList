@@ -8,12 +8,7 @@ const TRANSLATIONS = {
     "settings.button": "Réglages",
 
     "nav.home": "Accueil",
-
-    "home.listTitle": "Mode Liste",
-    "home.listDesc": "Coche les Pokémon que tu as attrapés, génération par génération.",
-    "home.quizTitle": "Mode Quiz",
-    "home.quizDesc": "Devine le nom de chaque Pokémon caché, contre le chrono.",
-    "home.listStat": "{count} / {total} attrapés",
+    "nav.list": "Liste",
 
     "gen.title": "Génération",
     "gen.label1": "Gen 1",
@@ -130,12 +125,7 @@ const TRANSLATIONS = {
     "settings.button": "Settings",
 
     "nav.home": "Home",
-
-    "home.listTitle": "List Mode",
-    "home.listDesc": "Check off the Pokémon you've caught, generation by generation.",
-    "home.quizTitle": "Quiz Mode",
-    "home.quizDesc": "Guess every hidden Pokémon's name, against the clock.",
-    "home.listStat": "{count} / {total} caught",
+    "nav.list": "List",
 
     "gen.title": "Generation",
     "gen.label1": "Gen 1",
@@ -252,12 +242,7 @@ const TRANSLATIONS = {
     "settings.button": "Ajustes",
 
     "nav.home": "Inicio",
-
-    "home.listTitle": "Modo Lista",
-    "home.listDesc": "Marca los Pokémon que has atrapado, generación por generación.",
-    "home.quizTitle": "Modo Quiz",
-    "home.quizDesc": "Adivina el nombre de cada Pokémon oculto, contrarreloj.",
-    "home.listStat": "{count} / {total} atrapados",
+    "nav.list": "Lista",
 
     "gen.title": "Generación",
     "gen.label1": "Gen 1",
@@ -374,12 +359,7 @@ const TRANSLATIONS = {
     "settings.button": "Einstellungen",
 
     "nav.home": "Start",
-
-    "home.listTitle": "Listenmodus",
-    "home.listDesc": "Hake die Pokémon ab, die du gefangen hast, Generation für Generation.",
-    "home.quizTitle": "Quiz-Modus",
-    "home.quizDesc": "Errate den Namen jedes versteckten Pokémon, gegen die Uhr.",
-    "home.listStat": "{count} / {total} gefangen",
+    "nav.list": "Liste",
 
     "gen.title": "Generation",
     "gen.label1": "Gen 1",

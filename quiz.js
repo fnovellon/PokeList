@@ -516,7 +516,7 @@ quizEndBtn.addEventListener("click", () => {
 quizReplayBtn.addEventListener("click", backToSetup);
 quizHomeBtn.addEventListener("click", () => {
   backToSetup();
-  goToMode("home");
+  goToMode("quiz");
 });
 
 function vibrate(pattern) {

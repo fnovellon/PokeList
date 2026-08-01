@@ -86,8 +86,8 @@ function refreshLanguageDependentViews() {
     updateQuizProgress();
   }
   if (quizPhase === "recap") renderRecap();
-  updateHomeStats();
   if (!badgesOverlay.hidden) renderBadgesModal();
+  renderQuizBadgesStrip();
 }
 
 function updateSettingsUI() {

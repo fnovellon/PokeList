@@ -18,12 +18,20 @@
     <div class="header-actions">
       <button
         class="icon-btn mode-btn active"
-        data-mode="home"
+        data-mode="quiz"
         data-i18n-aria-label="nav.home"
         data-i18n-title="nav.home"
         aria-label="Accueil"
         title="Accueil"
       >🏠</button>
+      <button
+        class="icon-btn mode-btn"
+        data-mode="list"
+        data-i18n-aria-label="nav.list"
+        data-i18n-title="nav.list"
+        aria-label="Liste"
+        title="Liste"
+      >📋</button>
       <button id="badges-btn" class="icon-btn" data-i18n-aria-label="badges.button" data-i18n-title="badges.button" aria-label="Badges" title="Badges">🏅</button>
       <select id="language-select" class="language-select" aria-label="Langue" data-i18n-aria-label="settings.language">
         <option value="fr">🇫🇷 FR</option>
@@ -36,22 +44,6 @@
   </header>
 
   <main>
-    <section id="view-home" class="view">
-      <div class="home-grid">
-        <button class="home-card" data-mode="list">
-          <span class="home-card-icon">📋</span>
-          <span class="home-card-title" data-i18n="home.listTitle">Mode Liste</span>
-          <span class="home-card-desc" data-i18n="home.listDesc">Coche les Pokémon que tu as attrapés, génération par génération.</span>
-          <span class="home-card-stat" id="home-list-stat">0 / 151</span>
-        </button>
-        <button class="home-card" data-mode="quiz">
-          <span class="home-card-icon">❓</span>
-          <span class="home-card-title" data-i18n="home.quizTitle">Mode Quiz</span>
-          <span class="home-card-desc" data-i18n="home.quizDesc">Devine le nom de chaque Pokémon caché, contre le chrono.</span>
-        </button>
-      </div>
-    </section>
-
     <section id="view-list" class="view" hidden>
       <div class="gen-tabs" id="list-gen-tabs">
         <button class="gen-tab active" data-gen="1" data-i18n="gen.label1">Gen 1</button>
@@ -77,9 +69,11 @@
       <ul id="pokemon-list" class="pokemon-list"></ul>
     </section>
 
-    <section id="view-quiz" class="view" hidden>
+    <section id="view-quiz" class="view">
       <div id="quiz-setup" class="quiz-setup">
         <h2 data-i18n="quiz.setupTitle">Configurer le Quiz</h2>
+
+        <div class="quiz-badges-strip" id="quiz-badges-strip"></div>
 
         <div class="settings-section">
           <h3 data-i18n="gen.title">Génération</h3>

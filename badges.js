@@ -38,6 +38,7 @@ function awardBadge(gen) {
   earnedBadges.add(gen);
   saveBadges(earnedBadges);
   renderBadgesModal();
+  renderQuizBadgesStrip();
   return true;
 }
 
@@ -45,6 +46,18 @@ const badgesBtn = document.getElementById("badges-btn");
 const badgesOverlay = document.getElementById("badges-overlay");
 const badgesCloseBtn = document.getElementById("badges-close");
 const badgesListEl = document.getElementById("badges-list");
+const quizBadgesStripEl = document.getElementById("quiz-badges-strip");
+
+// Bandeau compact affiché en haut de l'écran d'accueil (= config du Quiz) :
+// juste les icônes, sans description, pour un rappel visuel discret.
+function renderQuizBadgesStrip() {
+  quizBadgesStripEl.innerHTML = GENERATIONS.map((gen) => {
+    const earned = hasBadge(gen);
+    const label = t(`gen.label${gen}`);
+    const state = earned ? t("badges.earned") : t("badges.locked");
+    return `<img class="quiz-badge-strip-icon ${earned ? "badge-earned" : "badge-locked"}" src="${badgeSpriteUrl(gen)}" alt="${label}" title="${label} — ${state}" loading="lazy" />`;
+  }).join("");
+}
 
 function renderBadgesModal() {
   badgesListEl.innerHTML = GENERATIONS.map((gen) => {
@@ -78,3 +91,5 @@ badgesOverlay.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !badgesOverlay.hidden) closeBadges();
 });
+
+renderQuizBadgesStrip();
