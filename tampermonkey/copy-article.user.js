@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Copier le contenu de l'article
 // @namespace    https://github.com/fnovellon/pokelist
-// @version      2.0.0
+// @version      2.1.0
 // @description  Ajoute un bouton flottant qui copie uniquement le texte de l'article (sans menus, pub, commentaires...), y compris quand le contenu est dans une iframe (même cross-origin)
 // @author       fnovellon
 // @match        *://*/*
@@ -19,7 +19,30 @@
   const FRAME_TIMEOUT_MS = 1500;
   const isTopFrame = window.top === window;
 
+  function extractDomKnowPageText() {
+    const activePage = document.querySelector(
+      '.dkiContentFrame.current .pageElementsWrapper, .dkiContentFrame.dk-current .pageElementsWrapper'
+    );
+    if (!activePage) return null;
+
+    const lines = [];
+    activePage.querySelectorAll('.dki-element-text').forEach((node) => {
+      const hidden = node.closest(
+        '[data-renderhidden="true"], .hiddenOnLoad, .element-feedback, .question-submit-wrapper'
+      );
+      if (hidden) return;
+      const text = node.innerText.trim();
+      if (text) lines.push(text);
+    });
+
+    const combined = lines.join('\n\n');
+    return combined.length > 50 ? combined : null;
+  }
+
   function extractLocalText() {
+    const domKnowText = extractDomKnowPageText();
+    if (domKnowText) return domKnowText;
+
     try {
       const clone = document.cloneNode(true);
       const article = new Readability(clone).parse();
