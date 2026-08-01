@@ -24,6 +24,11 @@
         aria-label="Accueil"
         title="Accueil"
       >🏠</button>
+      <select id="language-select" class="language-select" aria-label="Langue" data-i18n-aria-label="settings.language">
+        <option value="fr">🇫🇷 FR</option>
+        <option value="en">🇬🇧 EN</option>
+        <option value="es">🇪🇸 ES</option>
+      </select>
       <button id="settings-btn" class="icon-btn" data-i18n-aria-label="settings.button" data-i18n-title="settings.button" aria-label="Réglages" title="Réglages">⚙️</button>
     </div>
   </header>
@@ -155,15 +160,6 @@
       <div class="settings-panel-header">
         <h2 id="settings-title" data-i18n="settings.title">Réglages</h2>
         <button id="settings-close" class="settings-close" data-i18n-aria-label="settings.close" aria-label="Fermer">✕</button>
-      </div>
-
-      <div class="settings-section">
-        <h3 data-i18n="settings.language">Langue</h3>
-        <div class="settings-options">
-          <button class="settings-option" data-setting="language" data-value="fr">🇫🇷 Français</button>
-          <button class="settings-option" data-setting="language" data-value="en">🇬🇧 English</button>
-          <button class="settings-option" data-setting="language" data-value="es">🇪🇸 Español</button>
-        </div>
       </div>
 
       <div class="settings-section">

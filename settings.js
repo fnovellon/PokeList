@@ -56,6 +56,9 @@ applyTheme();
 applyCardSize();
 applyTranslations();
 
+const languageSelect = document.getElementById("language-select");
+languageSelect.value = settings.language;
+
 const settingsBtn = document.getElementById("settings-btn");
 const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
@@ -120,8 +123,13 @@ settingsOptionBtns.forEach((btn) => {
     updateSettingsUI();
     if (btn.dataset.setting === "theme") applyTheme();
     if (btn.dataset.setting === "cardSize") applyCardSize();
-    if (btn.dataset.setting === "language") refreshLanguageDependentViews();
   });
+});
+
+languageSelect.addEventListener("change", () => {
+  settings.language = languageSelect.value;
+  saveSettings();
+  refreshLanguageDependentViews();
 });
 
 animatedToggle.addEventListener("change", () => {
