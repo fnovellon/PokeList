@@ -134,6 +134,7 @@ function renderQuizPlaying() {
     if (pokemon.id === justFoundId) li.classList.add("just-found");
 
     li.innerHTML = `
+      <span class="pokemon-number quiz-number">${formatNumber(pokemon.id)}</span>
       <div class="quiz-card-top">
         <span class="sprite-wrap">
           <img
@@ -150,7 +151,6 @@ function renderQuizPlaying() {
       </div>
       <div class="quiz-card-bottom">
         <span class="quiz-card-types">${typeBadgesHtml(pokemon)}</span>
-        <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
       </div>
     `;
 

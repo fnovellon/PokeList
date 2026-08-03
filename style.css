@@ -377,9 +377,9 @@ main {
   overflow-wrap: anywhere;
 }
 
-/* Carte Quiz : taille fixe, sprite + nom en haut, types (gauche) et numéro
-   (droite) en bas — le contenu (nom révélé ou non, types affichés ou non) ne
-   doit jamais faire varier la hauteur de la carte. */
+/* Carte Quiz : taille fixe, numéro flottant en haut à droite, sprite + nom en
+   haut, types en bas à gauche — le contenu (nom révélé ou non, types
+   affichés ou non) ne doit jamais faire varier la hauteur de la carte. */
 .quiz-card {
   display: flex;
   flex-direction: column;
@@ -396,13 +396,11 @@ main {
   align-items: center;
   gap: 0.6rem;
   min-width: 0;
+  padding-right: 2.4rem;
 }
 
 .quiz-card-bottom {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.5rem;
   min-width: 0;
 }
 
@@ -416,9 +414,11 @@ main {
   overflow: hidden;
 }
 
-.quiz-card .pokemon-number {
+.quiz-card .quiz-number {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.75rem;
   width: auto;
-  flex-shrink: 0;
 }
 
 .quiz-sprite {
@@ -533,6 +533,16 @@ body[data-card-size="medium"] .pokemon-number {
   font-size: 0.68rem;
 }
 
+body[data-card-size="medium"] .quiz-card-top {
+  padding-right: 2rem;
+}
+
+body[data-card-size="medium"] .quiz-card .quiz-number {
+  width: auto;
+  top: 0.45rem;
+  right: 0.6rem;
+}
+
 body[data-card-size="medium"] .pokemon-name,
 body[data-card-size="medium"] .quiz-name {
   font-size: 0.85rem;
@@ -572,6 +582,16 @@ body[data-card-size="small"] .quiz-card {
 body[data-card-size="small"] .pokemon-number {
   width: 1.15rem;
   font-size: 0.58rem;
+}
+
+body[data-card-size="small"] .quiz-card-top {
+  padding-right: 1.6rem;
+}
+
+body[data-card-size="small"] .quiz-card .quiz-number {
+  width: auto;
+  top: 0.3rem;
+  right: 0.4rem;
 }
 
 body[data-card-size="small"] .pokemon-name,
