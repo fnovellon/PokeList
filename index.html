@@ -163,30 +163,44 @@
       </div>
 
       <div id="quiz-playing" class="view" hidden>
-        <div class="progress">
-          <div class="progress-bar">
-            <div id="quiz-progress-fill" class="progress-fill"></div>
+        <div id="quiz-sticky-bar" class="quiz-sticky-bar">
+          <div class="progress">
+            <div class="progress-bar">
+              <div id="quiz-progress-fill" class="progress-fill"></div>
+            </div>
+            <span id="quiz-progress-text">0 / 151</span>
           </div>
-          <span id="quiz-progress-text">0 / 151</span>
-        </div>
 
-        <form id="quiz-form" class="toolbar">
-          <span id="quiz-timer" class="quiz-timer">15:00</span>
-          <input
-            type="text"
-            id="quiz-input"
-            class="text-input"
-            data-i18n-placeholder="quiz.inputPlaceholder"
-            placeholder="Nom du Pokémon..."
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-          />
-          <div class="toolbar-buttons">
-            <button type="submit" data-i18n="quiz.submit">Valider</button>
-            <button type="button" id="quiz-end-btn" data-i18n="quiz.end">Abandonner</button>
-          </div>
-        </form>
+          <form id="quiz-form" class="toolbar">
+            <span id="quiz-timer" class="quiz-timer">15:00</span>
+            <div class="input-clear-wrap">
+              <input
+                type="text"
+                id="quiz-input"
+                class="text-input"
+                data-i18n-placeholder="quiz.inputPlaceholder"
+                placeholder="Nom du Pokémon..."
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+              />
+              <button
+                type="button"
+                id="quiz-input-clear"
+                class="input-clear-btn"
+                data-i18n-aria-label="quiz.clearInput"
+                data-i18n-title="quiz.clearInput"
+                aria-label="Effacer"
+                title="Effacer"
+                hidden
+              >✕</button>
+            </div>
+            <div class="toolbar-buttons">
+              <button type="submit" data-i18n="quiz.submit">Valider</button>
+              <button type="button" id="quiz-end-btn" data-i18n="quiz.end">Abandonner</button>
+            </div>
+          </form>
+        </div>
         <p id="quiz-feedback" class="quiz-feedback" aria-live="polite"></p>
 
         <ul id="quiz-list" class="pokemon-list"></ul>

@@ -473,13 +473,83 @@ main {
   color: #caa316;
 }
 
-#quiz-form {
+.quiz-sticky-bar {
   position: sticky;
   top: var(--header-height, 0px);
   z-index: 5;
   background: var(--bg);
   padding-top: 0.75rem;
+}
+
+.quiz-sticky-bar .progress {
+  margin-bottom: 0.6rem;
+}
+
+#quiz-form {
   padding-bottom: 0.75rem;
+}
+
+.input-clear-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.input-clear-wrap .text-input {
+  width: 100%;
+  min-width: 0;
+  padding-right: 2.2rem;
+  box-sizing: border-box;
+}
+
+.input-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.input-clear-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.input-clear-btn[hidden] {
+  display: none;
+}
+
+@keyframes input-shake {
+  10%, 90% {
+    transform: translateX(-1px);
+  }
+  20%, 80% {
+    transform: translateX(2px);
+  }
+  30%, 50%, 70% {
+    transform: translateX(-4px);
+  }
+  40%, 60% {
+    transform: translateX(4px);
+  }
+}
+
+.text-input.shake {
+  animation: input-shake 0.4s ease;
+  border-color: var(--accent);
 }
 
 @keyframes reveal-pop {

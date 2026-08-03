@@ -58,7 +58,7 @@ function updateStickyOffsets() {
   document.documentElement.style.setProperty("--header-height", `${headerHeight}px`);
   document.documentElement.style.setProperty(
     "--quiz-sticky-offset",
-    `${headerHeight + quizFormEl.offsetHeight}px`
+    `${headerHeight + quizStickyBarEl.offsetHeight}px`
   );
 }
 

@@ -24,8 +24,10 @@ const QUIZ_PRESETS = {
 
 const quizListEl = document.getElementById("quiz-list");
 const quizFoundChipsEl = document.getElementById("quiz-found-chips");
+const quizStickyBarEl = document.getElementById("quiz-sticky-bar");
 const quizFormEl = document.getElementById("quiz-form");
 const quizInputEl = document.getElementById("quiz-input");
+const quizInputClearBtn = document.getElementById("quiz-input-clear");
 const quizEndBtn = document.getElementById("quiz-end-btn");
 const quizProgressFillEl = document.getElementById("quiz-progress-fill");
 const quizProgressTextEl = document.getElementById("quiz-progress-text");
@@ -411,6 +413,7 @@ function startQuiz() {
 
   showQuizFeedback("", null);
   quizInputEl.value = "";
+  updateClearButtonVisibility();
   if (quizShowGrid) renderQuizPlaying();
   updateQuizProgress();
   updateStickyOffsets();
@@ -560,6 +563,26 @@ function vibrate(pattern) {
   navigator.vibrate?.(pattern);
 }
 
+// Retire puis réapplique la classe (avec un reflow forcé entre les deux) pour
+// que l'animation puisse rejouer sur des essais invalides consécutifs.
+function shakeInput() {
+  quizInputEl.classList.remove("shake");
+  void quizInputEl.offsetWidth;
+  quizInputEl.classList.add("shake");
+}
+
+function updateClearButtonVisibility() {
+  quizInputClearBtn.hidden = quizInputEl.value.length === 0;
+}
+
+quizInputEl.addEventListener("input", updateClearButtonVisibility);
+
+quizInputClearBtn.addEventListener("click", () => {
+  quizInputEl.value = "";
+  updateClearButtonVisibility();
+  quizInputEl.focus();
+});
+
 quizFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
   if (quizPhase !== "playing") return;
@@ -592,6 +615,7 @@ quizFormEl.addEventListener("submit", (event) => {
     }
     updateQuizProgress();
     quizInputEl.value = "";
+    updateClearButtonVisibility();
 
     if (wonShiny) {
       showQuizFeedback(t("quiz.shinyUnlocked", { name: pokemonName(match) }), "shiny");
@@ -615,10 +639,12 @@ quizFormEl.addEventListener("submit", (event) => {
       showQuizFeedback(t("quiz.feedbackAlreadyFound", { name: pokemonName(alreadyFound) }), null);
     } else if (outOfOrder) {
       showQuizFeedback(t("quiz.feedbackOutOfOrder", { number: formatNumber(nextRequired.id) }), "error");
+      shakeInput();
       vibrate([30, 30, 30]);
     } else {
       quizWrongGuessCount += 1;
       showQuizFeedback(t("quiz.feedbackWrong"), "error");
+      shakeInput();
       vibrate([30, 30, 30]);
     }
   }
