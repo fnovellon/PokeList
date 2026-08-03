@@ -32,7 +32,8 @@
         aria-label="Liste"
         title="Liste"
       >📋</button>
-      <button id="badges-btn" class="icon-btn" data-i18n-aria-label="badges.button" data-i18n-title="badges.button" aria-label="Badges" title="Badges">🏅</button>
+      <button id="shinydex-btn" class="icon-btn" data-i18n-aria-label="shinydex.button" data-i18n-title="shinydex.button" aria-label="Shiny Dex" title="Shiny Dex">✨</button>
+      <button id="achievements-btn" class="icon-btn" data-i18n-aria-label="achv.button" data-i18n-title="achv.button" aria-label="Succès" title="Succès">🏆</button>
       <select id="language-select" class="language-select" aria-label="Langue" data-i18n-aria-label="settings.language">
         <option value="fr">🇫🇷 FR</option>
         <option value="en">🇬🇧 EN</option>
@@ -73,7 +74,7 @@
       <div id="quiz-setup" class="quiz-setup">
         <h2 data-i18n="quiz.setupTitle">Configurer le Quiz</h2>
 
-        <div class="quiz-badges-strip" id="quiz-badges-strip"></div>
+        <div class="quiz-achv-strip" id="quiz-achv-strip"></div>
 
         <div class="settings-section">
           <h3 data-i18n="gen.title">Génération</h3>
@@ -185,7 +186,7 @@
         <div class="quiz-recap-stat" id="quiz-recap-stat">0%</div>
         <p id="quiz-recap-text" class="quiz-recap-text"></p>
         <p id="quiz-recap-time" class="quiz-recap-time" hidden></p>
-        <p id="quiz-badge-banner" class="quiz-badge-banner" hidden></p>
+        <p id="quiz-achv-banner" class="quiz-achv-banner" hidden></p>
         <div class="toolbar-buttons quiz-recap-actions">
           <button id="quiz-share-btn" data-i18n="quiz.share">📤 Partager</button>
           <button id="quiz-download-btn" data-i18n="quiz.download">🖼️ Télécharger l'image</button>
@@ -235,7 +236,7 @@
 
       <div class="settings-section">
         <h3 data-i18n="settings.resetAllTitle">Tout réinitialiser</h3>
-        <p class="settings-hint" data-i18n="settings.resetAllHint">Efface la progression, les réglages, les badges et les Shiny débloqués. Irréversible.</p>
+        <p class="settings-hint" data-i18n="settings.resetAllHint">Efface la progression, les réglages, les succès et les Shiny débloqués. Irréversible.</p>
         <div class="settings-options">
           <button id="settings-reset-all" class="settings-danger" data-i18n="settings.resetAll">🗑️ Tout réinitialiser</button>
         </div>
@@ -243,13 +244,39 @@
     </div>
   </div>
 
-  <div id="badges-overlay" class="settings-overlay" hidden>
-    <div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="badges-title">
+  <div id="achievements-overlay" class="settings-overlay" hidden>
+    <div class="settings-panel achv-panel" role="dialog" aria-modal="true" aria-labelledby="achievements-title">
       <div class="settings-panel-header">
-        <h2 id="badges-title" data-i18n="badges.title">Badges</h2>
-        <button id="badges-close" class="settings-close" data-i18n-aria-label="settings.close" aria-label="Fermer">✕</button>
+        <h2 id="achievements-title" data-i18n="achv.title">Succès</h2>
+        <button id="achievements-close" class="settings-close" data-i18n-aria-label="settings.close" aria-label="Fermer">✕</button>
       </div>
-      <div id="badges-list" class="badges-list"></div>
+      <div class="gen-tabs" id="achv-gen-tabs">
+        <button class="gen-tab active" data-gen="1" data-i18n="gen.label1">Gen 1</button>
+        <button class="gen-tab" data-gen="2" data-i18n="gen.label2">Gen 2</button>
+        <button class="gen-tab" data-gen="3" data-i18n="gen.label3">Gen 3</button>
+      </div>
+      <div id="achievements-list" class="achv-list"></div>
+    </div>
+  </div>
+
+  <div id="shinydex-overlay" class="settings-overlay" hidden>
+    <div class="settings-panel shinydex-panel" role="dialog" aria-modal="true" aria-labelledby="shinydex-title">
+      <div class="settings-panel-header">
+        <h2 id="shinydex-title" data-i18n="shinydex.title">Shiny Dex</h2>
+        <button id="shinydex-close" class="settings-close" data-i18n-aria-label="settings.close" aria-label="Fermer">✕</button>
+      </div>
+      <div class="gen-tabs" id="shinydex-gen-tabs">
+        <button class="gen-tab active" data-gen="1" data-i18n="gen.label1">Gen 1</button>
+        <button class="gen-tab" data-gen="2" data-i18n="gen.label2">Gen 2</button>
+        <button class="gen-tab" data-gen="3" data-i18n="gen.label3">Gen 3</button>
+      </div>
+      <div class="progress">
+        <div class="progress-bar">
+          <div id="shinydex-progress-fill" class="progress-fill"></div>
+        </div>
+        <span id="shinydex-progress-text">0 / 151</span>
+      </div>
+      <ul id="shinydex-list" class="pokemon-list shinydex-list"></ul>
     </div>
   </div>
 
@@ -259,7 +286,8 @@
   <script src="matching.js"></script>
   <script src="shiny.js"></script>
   <script src="settings.js"></script>
-  <script src="badges.js"></script>
+  <script src="achievements.js"></script>
+  <script src="shinydex.js"></script>
   <script src="list.js"></script>
   <script src="quiz.js"></script>
   <script src="app.js"></script>

@@ -1,6 +1,6 @@
 // Shiny : chaque bonne réponse en mode Quiz a 1% de chance de débloquer la
 // version Shiny du Pokémon trouvé, définitivement. Persisté comme les
-// badges (contrairement au reste du Quiz), peu importe la génération ou le
+// succès (contrairement au reste du Quiz), peu importe la génération ou le
 // preset de difficulté utilisé.
 const SHINY_KEY = "pokelist-shinies";
 const SHINY_UNLOCK_CHANCE = 0.01;

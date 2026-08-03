@@ -34,7 +34,7 @@ const quizTimerEl = document.getElementById("quiz-timer");
 const quizRecapStatEl = document.getElementById("quiz-recap-stat");
 const quizRecapTextEl = document.getElementById("quiz-recap-text");
 const quizRecapTimeEl = document.getElementById("quiz-recap-time");
-const quizBadgeBannerEl = document.getElementById("quiz-badge-banner");
+const quizAchvBannerEl = document.getElementById("quiz-achv-banner");
 const quizRecapStatsEl = document.getElementById("quiz-recap-stats");
 const quizRecapListEl = document.getElementById("quiz-recap-list");
 const quizReplayBtn = document.getElementById("quiz-replay-btn");
@@ -180,6 +180,15 @@ function addFoundChip(pokemon) {
 
   const nextChip = [...quizFoundChipsEl.children].find((c) => Number(c.dataset.id) > pokemon.id);
   quizFoundChipsEl.insertBefore(chip, nextChip || null);
+}
+
+// Reconstruit toutes les puces (ordre numérique déjà garanti par quizRoster) ;
+// utile quand un réglage global qui affecte leur sprite change (animé, Shiny).
+function renderQuizFoundChips() {
+  quizFoundChipsEl.innerHTML = "";
+  quizRoster()
+    .filter((p) => quizFound.has(p.id))
+    .forEach((p) => addFoundChip(p));
 }
 
 function renderRecap() {
@@ -413,15 +422,21 @@ function endQuiz() {
   quizRecapEl.hidden = false;
   renderRecap();
 
-  // Badge de génération : débloqué dès que tous les Pokémon du roster sont
-  // trouvés, peu importe le preset de difficulté utilisé pour y arriver.
+  // Succès de génération : évalués dès que tous les Pokémon du roster sont
+  // trouvés (complétion, temps, Hardcore, preset utilisé).
   const completedGen = quizFound.size === quizRoster().length;
-  if (completedGen && awardBadge(quizGeneration)) {
-    quizBadgeBannerEl.hidden = false;
-    quizBadgeBannerEl.textContent = t("quiz.badgeEarned", { gen: quizGeneration });
+  const newlyEarned = completedGen
+    ? checkAchievements(quizGeneration, { elapsedMs: quizElapsedMs, hardcore: quizHardcore, preset: quizPreset })
+    : [];
+
+  if (newlyEarned.length > 0) {
+    const icons = newlyEarned.map((key) => ACHIEVEMENTS.find((a) => a.key === key).icon).join(" ");
+    quizAchvBannerEl.hidden = false;
+    quizAchvBannerEl.textContent = t("achv.earnedBanner", { gen: quizGeneration, icons });
+    renderQuizAchvStrip();
   } else {
-    quizBadgeBannerEl.hidden = true;
-    quizBadgeBannerEl.textContent = "";
+    quizAchvBannerEl.hidden = true;
+    quizAchvBannerEl.textContent = "";
   }
 }
 
@@ -797,7 +812,7 @@ window.debug = window.debug || {};
 
 // debug.fillQuiz() : débloque instantanément tout le roster de la partie en
 // cours sauf son premier Pokémon, pour tester la fin de partie (et
-// l'obtention du badge) sans avoir à tout retaper à la main.
+// l'obtention des succès) sans avoir à tout retaper à la main.
 window.debug.fillQuiz = function () {
   if (quizPhase !== "playing") {
     console.warn("[debug.fillQuiz] Aucun quiz en cours.");
@@ -829,5 +844,19 @@ window.debug.unlockShiny = function (id) {
   saveShinies(unlockedShinies);
   if (quizPhase === "playing" && quizShowGrid) renderQuizPlaying();
   if (quizPhase === "recap") renderRecap();
+  if (!shinydexOverlay.hidden) renderShinyDex();
   console.log(`[debug.unlockShiny] Shiny débloqué pour #${id}.`);
+};
+
+// debug.unlockAchievement(gen, key) : débloque directement un succès (clés
+// valides : complete, under30, under15, under10, hardcore, easy, normal, hard).
+window.debug.unlockAchievement = function (gen, key) {
+  if (!ACHIEVEMENTS.some((a) => a.key === key)) {
+    console.warn(`[debug.unlockAchievement] Clé inconnue : ${key}. Valides : ${ACHIEVEMENTS.map((a) => a.key).join(", ")}`);
+    return;
+  }
+  const isNew = awardAchievement(gen, key);
+  renderQuizAchvStrip();
+  if (!achievementsOverlay.hidden) renderAchievementsModal();
+  console.log(`[debug.unlockAchievement] Gen ${gen} / ${key} : ${isNew ? "débloqué" : "déjà obtenu"}.`);
 };

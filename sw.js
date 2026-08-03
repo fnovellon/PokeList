@@ -1,4 +1,4 @@
-const SHELL_CACHE = "pokelist-shell-v4";
+const SHELL_CACHE = "pokelist-shell-v5";
 const SPRITE_CACHE = "pokelist-sprites-v1";
 
 const SHELL_ASSETS = [
@@ -11,7 +11,8 @@ const SHELL_ASSETS = [
   "./matching.js",
   "./shiny.js",
   "./settings.js",
-  "./badges.js",
+  "./achievements.js",
+  "./shinydex.js",
   "./list.js",
   "./quiz.js",
   "./app.js",
@@ -46,10 +47,7 @@ self.addEventListener("fetch", (event) => {
 
   // Sprites PokeAPI : cache-first, mis en cache au fil de la navigation pour un
   // usage hors-ligne progressif (un Pokémon déjà vu reste visible sans réseau).
-  if (
-    url.hostname === "raw.githubusercontent.com" &&
-    (url.pathname.includes("/sprites/pokemon/") || url.pathname.includes("/sprites/badges/"))
-  ) {
+  if (url.hostname === "raw.githubusercontent.com" && url.pathname.includes("/sprites/pokemon/")) {
     event.respondWith(
       caches.open(SPRITE_CACHE).then(async (cache) => {
         const cached = await cache.match(request);

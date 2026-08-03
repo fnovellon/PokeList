@@ -691,68 +691,58 @@ body[data-card-size="small"] .pokemon-card {
   color: #fff;
 }
 
-/* Badges */
-.badges-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+/* Succès */
+.achv-panel {
+  max-width: 480px;
 }
 
-.badge-tile {
+.achv-list {
   display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 0.75rem;
-  row-gap: 0.15rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.achv-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg);
 }
 
-.badge-tile-icon {
-  grid-row: 1 / 3;
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  align-self: center;
+.achv-tile-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  filter: grayscale(1);
+  opacity: 0.4;
   transition: filter 0.2s ease, opacity 0.2s ease;
 }
 
-.badge-tile.badge-locked .badge-tile-icon {
-  filter: grayscale(1);
-  opacity: 0.45;
-}
-
-.badge-tile-label {
-  font-weight: 700;
-}
-
-.badge-tile-state {
-  grid-column: 2;
-  font-size: 0.75rem;
+.achv-tile-label {
+  font-size: 0.82rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--text-muted);
+  transition: color 0.2s ease;
 }
 
-.badge-tile-desc {
-  grid-column: 1 / 3;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 0.2rem;
-}
-
-.badge-tile.badge-earned {
+.achv-tile.achv-earned {
   border-color: var(--accent-2);
   background: color-mix(in srgb, var(--accent-2) 10%, var(--bg));
 }
 
-.badge-tile.badge-locked {
-  opacity: 0.7;
+.achv-tile.achv-earned .achv-tile-icon {
+  filter: none;
+  opacity: 1;
 }
 
-.quiz-badge-banner {
+.achv-tile.achv-earned .achv-tile-label {
+  color: var(--text);
+}
+
+.quiz-achv-banner {
   margin: 0.75rem 0 0;
   padding: 0.6rem 1rem;
   border-radius: 10px;
@@ -763,7 +753,7 @@ body[data-card-size="small"] .pokemon-card {
   text-align: center;
 }
 
-.quiz-badge-banner[hidden] {
+.quiz-achv-banner[hidden] {
   display: none;
 }
 
@@ -867,26 +857,72 @@ body[data-card-size="small"] .pokemon-card {
   text-align: center;
 }
 
-/* Rappel compact des badges en haut de l'accueil (= config du Quiz) : juste
-   les icônes, en couleur si débloqués, grisées sinon. Détails complets dans
-   la modale ouverte depuis le header. */
-.quiz-badges-strip {
+/* Rappel compact des succès en haut de l'accueil (= config du Quiz) : une
+   tuile par génération avec le nombre de succès obtenus, cliquable pour
+   ouvrir le détail dans la modale Succès sur cette génération. */
+.quiz-achv-strip {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
   margin: 0 0 1.25rem;
 }
 
-.quiz-badge-strip-icon {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
+.quiz-achv-strip-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: border-color 0.15s ease;
+}
+
+.quiz-achv-strip-tile:hover {
+  border-color: var(--accent-2);
+}
+
+.quiz-achv-strip-gen {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.quiz-achv-strip-icon {
+  font-size: 1.2rem;
+  opacity: 0.35;
+  filter: grayscale(1);
   transition: filter 0.2s ease, opacity 0.2s ease;
 }
 
-.quiz-badge-strip-icon.badge-locked {
-  filter: grayscale(1);
-  opacity: 0.45;
+.quiz-achv-strip-tile.achv-partial .quiz-achv-strip-icon {
+  opacity: 0.75;
+  filter: grayscale(0.4);
+}
+
+.quiz-achv-strip-tile.achv-complete .quiz-achv-strip-icon {
+  opacity: 1;
+  filter: none;
+}
+
+.quiz-achv-strip-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.quiz-achv-strip-tile.achv-complete .quiz-achv-strip-count {
+  color: var(--accent-2);
+}
+
+.quiz-achv-strip-tile.achv-complete {
+  border-color: var(--accent-2);
 }
 
 .quiz-start-btn {
@@ -1083,6 +1119,33 @@ body[data-card-size="small"] .pokemon-card {
 
 .pokemon-card.missing .pokemon-name {
   color: var(--accent);
+}
+
+/* Shiny Dex */
+.shinydex-panel {
+  max-width: 480px;
+}
+
+.shinydex-list {
+  margin-top: 1rem;
+}
+
+.shinydex-sprite {
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.pokemon-card.shiny-locked .shinydex-sprite {
+  filter: grayscale(1) brightness(0.5);
+  opacity: 0.5;
+}
+
+.pokemon-card.shiny-locked .pokemon-name {
+  color: var(--text-muted);
+}
+
+.pokemon-card.shiny-unlocked {
+  border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 8%, var(--surface));
 }
 
 .confetti-canvas {

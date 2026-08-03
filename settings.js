@@ -29,17 +29,26 @@ function saveSettings() {
 
 let settings = loadSettings();
 
-// Choisit l'URL du sprite selon les réglages courants (animé) ; un Pokémon
-// dont le Shiny a été débloqué (voir shiny.js) s'affiche en Shiny, seul
-// moyen d'obtenir la variante depuis que le réglage global a été retiré.
-function getSpriteUrl(id) {
-  const shiny = isShinyUnlocked(id);
+function spriteUrlFor(id, shiny) {
   if (settings.animated) {
     return shiny
       ? `${SPRITE_BASE}/versions/generation-v/black-white/animated/shiny/${id}.gif`
       : `${SPRITE_BASE}/versions/generation-v/black-white/animated/${id}.gif`;
   }
   return shiny ? `${SPRITE_BASE}/shiny/${id}.png` : `${SPRITE_BASE}/${id}.png`;
+}
+
+// Choisit l'URL du sprite selon les réglages courants (animé) ; un Pokémon
+// dont le Shiny a été débloqué (voir shiny.js) s'affiche en Shiny, seul
+// moyen d'obtenir la variante depuis que le réglage global a été retiré.
+function getSpriteUrl(id) {
+  return spriteUrlFor(id, isShinyUnlocked(id));
+}
+
+// Toujours la variante Shiny, peu importe si elle a été débloquée : utilisé
+// par le Shiny Dex pour prévisualiser (en grisé) les Shiny pas encore obtenus.
+function getShinySpriteUrl(id) {
+  return spriteUrlFor(id, true);
 }
 
 function applyTheme() {
@@ -71,8 +80,12 @@ const animatedToggle = document.getElementById("setting-animated");
 
 function refreshSpriteDependentViews() {
   renderList();
-  if (quizPhase === "playing" && quizShowGrid) renderQuizPlaying();
+  if (quizPhase === "playing") {
+    if (quizShowGrid) renderQuizPlaying();
+    else renderQuizFoundChips();
+  }
   if (quizPhase === "recap") renderRecap();
+  if (!shinydexOverlay.hidden) renderShinyDex();
 }
 
 // Les noms/types des Pokémon et tout le texte de l'interface changent avec
@@ -86,8 +99,9 @@ function refreshLanguageDependentViews() {
     updateQuizProgress();
   }
   if (quizPhase === "recap") renderRecap();
-  if (!badgesOverlay.hidden) renderBadgesModal();
-  renderQuizBadgesStrip();
+  if (!achievementsOverlay.hidden) renderAchievementsModal();
+  if (!shinydexOverlay.hidden) renderShinyDex();
+  renderQuizAchvStrip();
 }
 
 function updateSettingsUI() {
@@ -139,7 +153,7 @@ animatedToggle.addEventListener("change", () => {
   refreshSpriteDependentViews();
 });
 
-// Efface tout le stockage local de l'app (progression, réglages, badges,
+// Efface tout le stockage local de l'app (progression, réglages, succès,
 // Shiny débloqués) et recharge la page pour repartir d'un état neuf.
 document.getElementById("settings-reset-all").addEventListener("click", () => {
   if (!confirm(t("settings.resetAllConfirm"))) return;
