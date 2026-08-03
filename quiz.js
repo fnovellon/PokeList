@@ -4,21 +4,22 @@ const quizRecapEl = document.getElementById("quiz-recap");
 
 const quizGenBtns = document.querySelectorAll("#quiz-gen-options .settings-option");
 const quizPresetBtns = document.querySelectorAll("#quiz-preset-options .settings-option");
-const quizCustomOptionsEl = document.getElementById("quiz-custom-options");
 const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settings-option");
 const quizOptTypesEl = document.getElementById("quiz-opt-types");
 const quizOptGridEl = document.getElementById("quiz-opt-grid");
 const quizOptHintsEl = document.getElementById("quiz-opt-hints");
 const quizOptHardcoreEl = document.getElementById("quiz-opt-hardcore");
+const quizOptSequentialEl = document.getElementById("quiz-opt-sequential");
 const quizStartBtn = document.getElementById("quiz-start-btn");
 
 // Les 4 presets fixent temps + aides + tolérance orthographique en un clic ;
-// "Custom" laisse les réglages détaillés visibles pour un réglage manuel.
+// "Custom" laisse les réglages détaillés éditables pour un réglage manuel (les
+// autres presets les affichent aussi, désactivés, en aperçu de leurs valeurs).
 const QUIZ_PRESETS = {
-  easy: { minutes: 0, grid: true, types: true, hints: true, hardcore: false },
-  normal: { minutes: 0, grid: false, types: false, hints: false, hardcore: false },
-  hard: { minutes: 10, grid: false, types: false, hints: false, hardcore: false },
-  veryHard: { minutes: 10, grid: false, types: false, hints: false, hardcore: true },
+  easy: { minutes: 0, grid: true, types: true, hints: true, hardcore: false, sequential: false },
+  normal: { minutes: 0, grid: false, types: false, hints: false, hardcore: false, sequential: false },
+  hard: { minutes: 10, grid: false, types: false, hints: false, hardcore: false, sequential: false },
+  veryHard: { minutes: 10, grid: false, types: false, hints: false, hardcore: true, sequential: false },
 };
 
 const quizListEl = document.getElementById("quiz-list");
@@ -51,6 +52,7 @@ let quizShowTypes = false;
 let quizShowGrid = true;
 let quizShowHints = false;
 let quizHardcore = false;
+let quizSequential = false;
 let quizPreset = "normal";
 let quizGeneration = 1;
 let quizMinutesUsed = 0;
@@ -132,21 +134,23 @@ function renderQuizPlaying() {
     if (pokemon.id === justFoundId) li.classList.add("just-found");
 
     li.innerHTML = `
-      <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
-      <span class="sprite-wrap">
-        <img
-          class="pokemon-sprite quiz-sprite"
-          src="${getSpriteUrl(pokemon.id)}"
-          alt="${isFound ? name : t("quiz.altHidden")}"
-          loading="lazy"
-        />
-        ${shinySparkleHtml(pokemon.id)}
-      </span>
-      <div class="pokemon-info">
+      <div class="quiz-card-top">
+        <span class="sprite-wrap">
+          <img
+            class="pokemon-sprite quiz-sprite"
+            src="${getSpriteUrl(pokemon.id)}"
+            alt="${isFound ? name : t("quiz.altHidden")}"
+            loading="lazy"
+          />
+          ${shinySparkleHtml(pokemon.id)}
+        </span>
         <span class="pokemon-name quiz-name" ${isFound ? `title="${name}"` : ""}>${
           isFound ? name : hintedPlaceholder(pokemon)
         }</span>
-        ${typeBadgesHtml(pokemon)}
+      </div>
+      <div class="quiz-card-bottom">
+        <span class="quiz-card-types">${typeBadgesHtml(pokemon)}</span>
+        <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
       </div>
     `;
 
@@ -395,6 +399,7 @@ function startQuiz() {
   quizShowGrid = quizOptGridEl.checked;
   quizShowHints = quizOptHintsEl.checked;
   quizHardcore = quizOptHardcoreEl.checked;
+  quizSequential = quizOptSequentialEl.checked;
   quizPhase = "playing";
 
   quizSetupEl.hidden = true;
@@ -455,36 +460,51 @@ quizTimeOptionBtns.forEach((btn) => {
   });
 });
 
-// Les aides "types" et "indice" n'ont de sens que si la grille (qui les
-// affiche) est elle-même activée.
-function syncGridDependentOptions() {
+// Les réglages détaillés restent toujours visibles (même hors "Custom"), pour
+// que l'on voie ce que chaque preset applique ; ils ne sont éditables qu'en
+// "Custom". Les aides "types" et "indice" n'ont en plus de sens que si la
+// grille (qui les affiche) est elle-même activée.
+function updateCustomFieldsState() {
+  const isCustom = quizPreset === "custom";
   const gridOn = quizOptGridEl.checked;
-  [quizOptTypesEl, quizOptHintsEl].forEach((el) => {
-    el.disabled = !gridOn;
-    if (!gridOn) el.checked = false;
+
+  quizTimeOptionBtns.forEach((btn) => {
+    btn.disabled = !isCustom;
   });
+  quizOptGridEl.disabled = !isCustom;
+  quizOptHardcoreEl.disabled = !isCustom;
+  quizOptSequentialEl.disabled = !isCustom;
+  quizOptTypesEl.disabled = !isCustom || !gridOn;
+  quizOptHintsEl.disabled = !isCustom || !gridOn;
+
+  if (isCustom && !gridOn) {
+    quizOptTypesEl.checked = false;
+    quizOptHintsEl.checked = false;
+  }
 }
 
-quizOptGridEl.addEventListener("change", syncGridDependentOptions);
+quizOptGridEl.addEventListener("change", updateCustomFieldsState);
 
-// Applique un preset (temps + aides + tolérance orthographique) en un clic,
-// ou révèle les réglages détaillés pour "Custom" sans toucher à leurs valeurs
-// actuelles (pratique pour partir d'un preset et l'ajuster).
+// Applique un preset (temps + aides + tolérance orthographique) en un clic ;
+// pour "Custom", laisse les valeurs actuelles telles quelles (pratique pour
+// partir d'un preset et l'ajuster) et se contente de les rendre éditables.
 function applyPreset(presetKey) {
   quizPreset = presetKey;
   quizPresetBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.preset === presetKey));
-  quizCustomOptionsEl.hidden = presetKey !== "custom";
-  if (presetKey === "custom") return;
 
-  const preset = QUIZ_PRESETS[presetKey];
-  quizTimeOptionBtns.forEach((btn) => {
-    btn.classList.toggle("active", Number(btn.dataset.minutes) === preset.minutes);
-  });
-  quizOptGridEl.checked = preset.grid;
-  quizOptTypesEl.checked = preset.types;
-  quizOptHintsEl.checked = preset.hints;
-  quizOptHardcoreEl.checked = preset.hardcore;
-  syncGridDependentOptions();
+  if (presetKey !== "custom") {
+    const preset = QUIZ_PRESETS[presetKey];
+    quizTimeOptionBtns.forEach((btn) => {
+      btn.classList.toggle("active", Number(btn.dataset.minutes) === preset.minutes);
+    });
+    quizOptGridEl.checked = preset.grid;
+    quizOptTypesEl.checked = preset.types;
+    quizOptHintsEl.checked = preset.hints;
+    quizOptHardcoreEl.checked = preset.hardcore;
+    quizOptSequentialEl.checked = preset.sequential;
+  }
+
+  updateCustomFieldsState();
 }
 
 // Devine si la combinaison de réglages courante correspond à l'un des 4
@@ -496,6 +516,7 @@ function detectPresetFromCurrentOptions() {
     types: quizOptTypesEl.checked,
     hints: quizOptHintsEl.checked,
     hardcore: quizOptHardcoreEl.checked,
+    sequential: quizOptSequentialEl.checked,
   };
   const match = Object.entries(QUIZ_PRESETS).find(
     ([, preset]) =>
@@ -503,7 +524,8 @@ function detectPresetFromCurrentOptions() {
       preset.grid === current.grid &&
       preset.types === current.types &&
       preset.hints === current.hints &&
-      preset.hardcore === current.hardcore
+      preset.hardcore === current.hardcore &&
+      preset.sequential === current.sequential
   );
   return match ? match[0] : "custom";
 }
@@ -546,7 +568,15 @@ quizFormEl.addEventListener("submit", (event) => {
   if (!guess) return;
 
   const roster = quizRoster();
-  const match = roster.find((p) => !quizFound.has(p.id) && isCorrectGuess(guess, p));
+  // En mode "ordre croissant", seul le prochain Pokémon non trouvé (plus
+  // petit numéro de Pokédex) peut être validé : deviner un autre Pokémon
+  // valide mais pas encore "d'actualité" est traité comme hors d'ordre.
+  const nextRequired = quizSequential ? roster.find((p) => !quizFound.has(p.id)) : null;
+  const match = quizSequential
+    ? nextRequired && isCorrectGuess(guess, nextRequired)
+      ? nextRequired
+      : null
+    : roster.find((p) => !quizFound.has(p.id) && isCorrectGuess(guess, p));
 
   if (match) {
     quizFound.add(match.id);
@@ -580,8 +610,12 @@ quizFormEl.addEventListener("submit", (event) => {
     }
   } else {
     const alreadyFound = roster.find((p) => quizFound.has(p.id) && isCorrectGuess(guess, p));
+    const outOfOrder = quizSequential && roster.find((p) => !quizFound.has(p.id) && isCorrectGuess(guess, p));
     if (alreadyFound) {
       showQuizFeedback(t("quiz.feedbackAlreadyFound", { name: pokemonName(alreadyFound) }), null);
+    } else if (outOfOrder) {
+      showQuizFeedback(t("quiz.feedbackOutOfOrder", { number: formatNumber(nextRequired.id) }), "error");
+      vibrate([30, 30, 30]);
     } else {
       quizWrongGuessCount += 1;
       showQuizFeedback(t("quiz.feedbackWrong"), "error");
@@ -603,6 +637,7 @@ function buildQuizShareUrl() {
   params.set("grid", quizShowGrid ? "1" : "0");
   params.set("hints", quizShowHints ? "1" : "0");
   params.set("hardcore", quizHardcore ? "1" : "0");
+  params.set("sequential", quizSequential ? "1" : "0");
 
   const url = new URL(location.href);
   url.search = params.toString();
@@ -798,13 +833,15 @@ function applySharedQuizSettings(params) {
   quizOptGridEl.checked = params.get("grid") === "1";
   quizOptHintsEl.checked = params.get("hints") === "1";
   quizOptHardcoreEl.checked = params.get("hardcore") === "1";
+  quizOptSequentialEl.checked = params.get("sequential") === "1";
 
-  // Affiche le preset correspondant s'il y en a un, sinon bascule sur
-  // "Custom" pour révéler les réglages détaillés restaurés depuis le lien.
+  // Sélectionne le preset correspondant s'il y en a un, sinon bascule sur
+  // "Custom" pour rendre éditables les réglages détaillés restaurés depuis
+  // le lien (ils restent visibles dans tous les cas).
   const detected = detectPresetFromCurrentOptions();
   quizPreset = detected;
   quizPresetBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.preset === detected));
-  quizCustomOptionsEl.hidden = detected !== "custom";
+  updateCustomFieldsState();
 }
 
 // Commandes de debug (à taper dans la console), namespacées sous `debug`.

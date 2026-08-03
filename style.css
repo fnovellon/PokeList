@@ -377,12 +377,48 @@ main {
   overflow-wrap: anywhere;
 }
 
+/* Carte Quiz : taille fixe, sprite + nom en haut, types (gauche) et numéro
+   (droite) en bas — le contenu (nom révélé ou non, types affichés ou non) ne
+   doit jamais faire varier la hauteur de la carte. */
 .quiz-card {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.75rem;
+  height: 104px;
+  box-sizing: border-box;
   scroll-margin-top: var(--quiz-sticky-offset, 160px);
+}
+
+.quiz-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.quiz-card-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.quiz-card-types {
+  flex: 1;
+  min-width: 0;
+}
+
+.quiz-card-types .type-badges {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.quiz-card .pokemon-number {
+  width: auto;
+  flex-shrink: 0;
 }
 
 .quiz-sprite {
@@ -399,7 +435,9 @@ main {
 .quiz-name {
   flex: 1;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text-muted);
   letter-spacing: 0.2em;
 }
@@ -447,11 +485,13 @@ main {
 @keyframes reveal-pop {
   0% {
     transform: scale(0.85);
-    box-shadow: 0 0 0 0 rgba(89, 176, 107, 0.55);
+    background: var(--caught-bg);
+    box-shadow: 0 0 0 0 rgba(89, 176, 107, 0.6);
   }
-  60% {
-    transform: scale(1.06);
-    box-shadow: 0 0 0 12px rgba(89, 176, 107, 0);
+  50% {
+    transform: scale(1.1);
+    background: var(--caught-bg);
+    box-shadow: 0 0 0 16px rgba(89, 176, 107, 0);
   }
   100% {
     transform: scale(1);
@@ -460,7 +500,9 @@ main {
 }
 
 .quiz-card.just-found {
-  animation: reveal-pop 0.6s ease;
+  position: relative;
+  z-index: 2;
+  animation: reveal-pop 0.9s ease;
 }
 
 /* Taille des cartes (menu Réglages) — la taille par défaut ("grande") reprend
@@ -481,8 +523,9 @@ body[data-card-size="medium"] .pokemon-label {
 }
 
 body[data-card-size="medium"] .quiz-card {
-  gap: 0.5rem;
+  gap: 0.4rem;
   padding: 0.6rem;
+  height: 84px;
 }
 
 body[data-card-size="medium"] .pokemon-number {
@@ -521,8 +564,9 @@ body[data-card-size="small"] .pokemon-label {
 }
 
 body[data-card-size="small"] .quiz-card {
-  gap: 0.35rem;
+  gap: 0.3rem;
   padding: 0.4rem;
+  height: 66px;
 }
 
 body[data-card-size="small"] .pokemon-number {
@@ -637,6 +681,12 @@ body[data-card-size="small"] .pokemon-card {
   cursor: pointer;
   font-size: 0.85rem;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.settings-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .settings-option:hover {
