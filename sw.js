@@ -1,4 +1,4 @@
-const SHELL_CACHE = "pokelist-shell-v5";
+const SHELL_CACHE = "pokelist-shell-v6";
 const SPRITE_CACHE = "pokelist-sprites-v1";
 
 const SHELL_ASSETS = [
