@@ -80,25 +80,45 @@ function updateQuizProgress() {
   quizProgressTextEl.textContent = t("quiz.progress", { count, total });
 }
 
-// Validation stricte : contrairement à la recherche du mode Liste, une simple
-// saisie partielle (ex: "psi") ne doit pas suffire à trouver "Psykokwak" — il
-// faut écrire (à peu de fautes de frappe près) le nom complet.
+// Distance entre la saisie et le nom d'un Pokémon (0 = exact), ou null si hors
+// tolérance. Contrairement à la recherche du mode Liste, une simple saisie
+// partielle (ex: "psi") ne doit pas suffire à trouver "Psykokwak" — il faut
+// écrire (à peu de fautes de frappe près) le nom complet.
 // En mode Hardcore, aucune tolérance aux fautes de frappe n'est appliquée :
 // seules la casse et la ponctuation restent ignorées (normalizeStrict).
-function isCorrectGuess(rawGuess, pokemon) {
+function guessMatchDistance(rawGuess, pokemon) {
   if (quizHardcore) {
     const strictGuess = normalizeStrict(rawGuess);
-    if (!strictGuess) return false;
-    return strictGuess === pokemonStrictNormalizedName(pokemon);
+    if (!strictGuess) return null;
+    return strictGuess === pokemonStrictNormalizedName(pokemon) ? 0 : null;
   }
 
   const guess = normalize(rawGuess);
-  if (!guess) return false;
+  if (!guess) return null;
   const normalizedName = pokemonNormalizedName(pokemon);
-  if (guess === normalizedName) return true;
+  if (guess === normalizedName) return 0;
 
   const threshold = Math.max(1, Math.floor(normalizedName.length * 0.25));
-  return levenshtein(guess, normalizedName) <= threshold;
+  const distance = levenshtein(guess, normalizedName);
+  return distance <= threshold ? distance : null;
+}
+
+// Parmi les candidats, retourne celui dont le nom est le plus proche de la
+// saisie plutôt que le premier venu : deux Pokémon au nom très proche (ex:
+// "Nidoran" est dans la tolérance de Nidoran♀/♂ ET de Nidorina/Nidorino)
+// doivent se départager par la distance, sinon le mauvais gagne selon l'ordre
+// du Pokédex.
+function findClosestGuessMatch(rawGuess, candidates) {
+  let best = null;
+  let bestDistance = Infinity;
+  for (const pokemon of candidates) {
+    const distance = guessMatchDistance(rawGuess, pokemon);
+    if (distance !== null && distance < bestDistance) {
+      best = pokemon;
+      bestDistance = distance;
+    }
+  }
+  return best;
 }
 
 function showQuizFeedback(message, tone) {
@@ -591,15 +611,14 @@ quizFormEl.addEventListener("submit", (event) => {
   if (!guess) return;
 
   const roster = quizRoster();
+  const unfound = roster.filter((p) => !quizFound.has(p.id));
   // En mode "ordre croissant", seul le prochain Pokémon non trouvé (plus
   // petit numéro de Pokédex) peut être validé : deviner un autre Pokémon
   // valide mais pas encore "d'actualité" est traité comme hors d'ordre.
-  const nextRequired = quizSequential ? roster.find((p) => !quizFound.has(p.id)) : null;
+  const nextRequired = quizSequential ? unfound[0] ?? null : null;
   const match = quizSequential
-    ? nextRequired && isCorrectGuess(guess, nextRequired)
-      ? nextRequired
-      : null
-    : roster.find((p) => !quizFound.has(p.id) && isCorrectGuess(guess, p));
+    ? findClosestGuessMatch(guess, nextRequired ? [nextRequired] : [])
+    : findClosestGuessMatch(guess, unfound);
 
   if (match) {
     quizFound.add(match.id);
@@ -633,8 +652,8 @@ quizFormEl.addEventListener("submit", (event) => {
       return;
     }
   } else {
-    const alreadyFound = roster.find((p) => quizFound.has(p.id) && isCorrectGuess(guess, p));
-    const outOfOrder = quizSequential && roster.find((p) => !quizFound.has(p.id) && isCorrectGuess(guess, p));
+    const alreadyFound = findClosestGuessMatch(guess, roster.filter((p) => quizFound.has(p.id)));
+    const outOfOrder = quizSequential && findClosestGuessMatch(guess, unfound);
     if (alreadyFound) {
       showQuizFeedback(t("quiz.feedbackAlreadyFound", { name: pokemonName(alreadyFound) }), null);
     } else if (outOfOrder) {
