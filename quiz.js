@@ -423,6 +423,7 @@ function startQuiz() {
   quizHardcore = quizOptHardcoreEl.checked;
   quizSequential = quizOptSequentialEl.checked;
   quizPhase = "playing";
+  setQuizNavLock(true);
 
   quizSetupEl.hidden = true;
   quizRecapEl.hidden = true;
@@ -446,6 +447,7 @@ function endQuiz() {
   clearInterval(quizTimerHandle);
   quizTimerHandle = null;
   quizPhase = "recap";
+  setQuizNavLock(false);
   quizPlayingEl.hidden = true;
   quizRecapEl.hidden = false;
   renderRecap();

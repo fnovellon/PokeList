@@ -152,6 +152,12 @@ body {
   color: #fff;
 }
 
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .language-select {
   height: 34px;
   flex-shrink: 0;
@@ -451,6 +457,12 @@ main {
   color: var(--accent-2);
   font-weight: 700;
   letter-spacing: normal;
+}
+
+.quiz-lock-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 .quiz-feedback {

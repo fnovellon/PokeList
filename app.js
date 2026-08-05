@@ -95,6 +95,16 @@ modeButtons.forEach((btn) => {
   btn.addEventListener("click", () => goToMode(btn.dataset.mode));
 });
 
+const listModeBtn = document.querySelector('.mode-btn[data-mode="list"]');
+
+// Le mode Liste et le Shiny Dex affichent le nom de tous les Pokémon : les
+// verrouiller pendant une partie de Quiz empêche de les utiliser comme
+// antisèche (cf. quiz.js : appelé depuis startQuiz/endQuiz/backToSetup).
+function setQuizNavLock(locked) {
+  listModeBtn.disabled = locked;
+  shinydexBtn.disabled = locked;
+}
+
 // Un lien de partage (bouton "Partager" du récap Quiz) atterrit ici avec des
 // paramètres d'URL : on reprend directement ces réglages sur l'écran Quiz.
 const sharedQuizParams = new URLSearchParams(location.search);

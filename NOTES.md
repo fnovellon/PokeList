@@ -76,6 +76,13 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   Pokémon a été trouvé.
 - Commandes de debug dans la console : `debug.fillQuiz()`,
   `debug.unlockShiny(id)`, `debug.unlockAchievement(gen, key)`.
+- **Anti-triche** : pendant une partie (`quizPhase === "playing"`), les
+  boutons "Liste" et "Shiny Dex" du header sont désactivés (`setQuizNavLock`
+  dans `app.js`, appelé depuis `startQuiz`/`endQuiz` dans `quiz.js`) — les
+  deux affichent le nom de tous les Pokémon, ce qui permettait de les
+  utiliser comme antisèche pendant le Quiz. Un petit texte l'explique sous la
+  barre sticky. Se relâche dès que la partie se termine (temps écoulé,
+  complétion à 100%, ou abandon).
 
 ### Succès (`achievements.js`)
 - 8 par génération : terminer le Quiz (une fois), sous 30/15/10 min, en
@@ -197,3 +204,4 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
    qui ne marche plus").
 6. Fix : matching du Quiz (Nidoran/Nidorina/Nidorino se marchaient dessus).
 7. Ajout de ce fichier de notes.
+8. Anti-triche : verrouillage de "Liste" et "Shiny Dex" pendant une partie.
