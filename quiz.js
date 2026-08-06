@@ -10,16 +10,17 @@ const quizOptGridEl = document.getElementById("quiz-opt-grid");
 const quizOptHintsEl = document.getElementById("quiz-opt-hints");
 const quizOptHardcoreEl = document.getElementById("quiz-opt-hardcore");
 const quizOptSequentialEl = document.getElementById("quiz-opt-sequential");
+const quizOptPermadeathEl = document.getElementById("quiz-opt-permadeath");
 const quizStartBtn = document.getElementById("quiz-start-btn");
 
 // Les 4 presets fixent temps + aides + tolérance orthographique en un clic ;
 // "Custom" laisse les réglages détaillés éditables pour un réglage manuel (les
 // autres presets les affichent aussi, désactivés, en aperçu de leurs valeurs).
 const QUIZ_PRESETS = {
-  easy: { minutes: 0, grid: true, types: true, hints: true, hardcore: false, sequential: false },
-  normal: { minutes: 0, grid: false, types: false, hints: false, hardcore: false, sequential: false },
-  hard: { minutes: 10, grid: false, types: false, hints: false, hardcore: false, sequential: false },
-  veryHard: { minutes: 10, grid: false, types: false, hints: false, hardcore: true, sequential: false },
+  easy: { minutes: 0, grid: true, types: true, hints: true, hardcore: false, sequential: false, permadeath: false },
+  normal: { minutes: 0, grid: false, types: false, hints: false, hardcore: false, sequential: false, permadeath: false },
+  hard: { minutes: 10, grid: false, types: false, hints: false, hardcore: false, sequential: false, permadeath: false },
+  veryHard: { minutes: 10, grid: false, types: false, hints: false, hardcore: true, sequential: false, permadeath: false },
 };
 
 const quizListEl = document.getElementById("quiz-list");
@@ -37,6 +38,7 @@ const quizTimerEl = document.getElementById("quiz-timer");
 const quizRecapStatEl = document.getElementById("quiz-recap-stat");
 const quizRecapTextEl = document.getElementById("quiz-recap-text");
 const quizRecapTimeEl = document.getElementById("quiz-recap-time");
+const quizGameOverBannerEl = document.getElementById("quiz-gameover-banner");
 const quizAchvBannerEl = document.getElementById("quiz-achv-banner");
 const quizRecapStatsEl = document.getElementById("quiz-recap-stats");
 const quizRecapListEl = document.getElementById("quiz-recap-list");
@@ -55,6 +57,8 @@ let quizShowGrid = true;
 let quizShowHints = false;
 let quizHardcore = false;
 let quizSequential = false;
+let quizPermadeath = false;
+let quizGameOverByMistake = false;
 let quizPreset = "normal";
 let quizGeneration = 1;
 let quizMinutesUsed = 0;
@@ -224,6 +228,9 @@ function renderRecap() {
   const percent = Math.round((count / total) * 100);
   quizRecapStatEl.textContent = `${percent}%`;
   quizRecapTextEl.textContent = t("quiz.recapCount", { count, total });
+
+  quizGameOverBannerEl.hidden = !quizGameOverByMistake;
+  if (quizGameOverByMistake) quizGameOverBannerEl.textContent = t("quiz.gameOverBanner");
 
   // Le temps n'est un résultat intéressant que si la partie ne s'est pas
   // arrêtée simplement parce que le temps imparti était écoulé.
@@ -422,6 +429,8 @@ function startQuiz() {
   quizShowHints = quizOptHintsEl.checked;
   quizHardcore = quizOptHardcoreEl.checked;
   quizSequential = quizOptSequentialEl.checked;
+  quizPermadeath = quizOptPermadeathEl.checked;
+  quizGameOverByMistake = false;
   quizPhase = "playing";
   setQuizNavLock(true);
 
@@ -499,6 +508,7 @@ function updateCustomFieldsState() {
   quizOptGridEl.disabled = !isCustom;
   quizOptHardcoreEl.disabled = !isCustom;
   quizOptSequentialEl.disabled = !isCustom;
+  quizOptPermadeathEl.disabled = !isCustom;
   quizOptTypesEl.disabled = !isCustom || !gridOn;
   quizOptHintsEl.disabled = !isCustom || !gridOn;
 
@@ -527,6 +537,7 @@ function applyPreset(presetKey) {
     quizOptHintsEl.checked = preset.hints;
     quizOptHardcoreEl.checked = preset.hardcore;
     quizOptSequentialEl.checked = preset.sequential;
+    quizOptPermadeathEl.checked = preset.permadeath;
   }
 
   updateCustomFieldsState();
@@ -542,6 +553,7 @@ function detectPresetFromCurrentOptions() {
     hints: quizOptHintsEl.checked,
     hardcore: quizOptHardcoreEl.checked,
     sequential: quizOptSequentialEl.checked,
+    permadeath: quizOptPermadeathEl.checked,
   };
   const match = Object.entries(QUIZ_PRESETS).find(
     ([, preset]) =>
@@ -550,7 +562,8 @@ function detectPresetFromCurrentOptions() {
       preset.types === current.types &&
       preset.hints === current.hints &&
       preset.hardcore === current.hardcore &&
-      preset.sequential === current.sequential
+      preset.sequential === current.sequential &&
+      preset.permadeath === current.permadeath
   );
   return match ? match[0] : "custom";
 }
@@ -604,6 +617,15 @@ quizInputClearBtn.addEventListener("click", () => {
   updateClearButtonVisibility();
   quizInputEl.focus();
 });
+
+// Mode "un seul essai" : n'importe quelle réponse invalide (mauvais nom, ou
+// hors d'ordre en mode séquentiel) met immédiatement fin à la partie.
+function triggerGameOver() {
+  quizGameOverByMistake = true;
+  quizEndedByTimeout = false;
+  vibrate([80, 40, 80, 40, 160]);
+  endQuiz();
+}
 
 quizFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -662,11 +684,19 @@ quizFormEl.addEventListener("submit", (event) => {
       showQuizFeedback(t("quiz.feedbackOutOfOrder", { number: formatNumber(nextRequired.id) }), "error");
       shakeInput();
       vibrate([30, 30, 30]);
+      if (quizPermadeath) {
+        triggerGameOver();
+        return;
+      }
     } else {
       quizWrongGuessCount += 1;
       showQuizFeedback(t("quiz.feedbackWrong"), "error");
       shakeInput();
       vibrate([30, 30, 30]);
+      if (quizPermadeath) {
+        triggerGameOver();
+        return;
+      }
     }
   }
 
@@ -685,6 +715,7 @@ function buildQuizShareUrl() {
   params.set("hints", quizShowHints ? "1" : "0");
   params.set("hardcore", quizHardcore ? "1" : "0");
   params.set("sequential", quizSequential ? "1" : "0");
+  params.set("permadeath", quizPermadeath ? "1" : "0");
 
   const url = new URL(location.href);
   url.search = params.toString();
@@ -881,6 +912,7 @@ function applySharedQuizSettings(params) {
   quizOptHintsEl.checked = params.get("hints") === "1";
   quizOptHardcoreEl.checked = params.get("hardcore") === "1";
   quizOptSequentialEl.checked = params.get("sequential") === "1";
+  quizOptPermadeathEl.checked = params.get("permadeath") === "1";
 
   // Sélectionne le preset correspondant s'il y en a un, sinon bascule sur
   // "Custom" pour rendre éditables les réglages détaillés restaurés depuis

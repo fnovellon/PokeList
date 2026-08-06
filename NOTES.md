@@ -50,7 +50,9 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   Difficile / Très difficile / Custom), temps imparti, aides (grille avec
   numéros, types affichés, indice première lettre), mode Hardcore
   (orthographe exacte), mode "Ordre croissant" (deviner dans l'ordre du
-  Pokédex).
+  Pokédex), mode "Un seul essai" / permadeath (la première réponse invalide
+  met fin à la partie immédiatement — combinable avec "Ordre croissant" pour
+  un run façon "tous les Pokémon dans l'ordre, une erreur et c'est terminé").
 - Les réglages détaillés (temps, aides, ordre, orthographe) sont **toujours
   visibles**, même hors preset "Custom" — ils sont alors grisés/désactivés et
   affichent juste la valeur que le preset appliquerait. Seul "Custom" les
@@ -205,3 +207,5 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
 6. Fix : matching du Quiz (Nidoran/Nidorina/Nidorino se marchaient dessus).
 7. Ajout de ce fichier de notes.
 8. Anti-triche : verrouillage de "Liste" et "Shiny Dex" pendant une partie.
+9. Nouveau mode Quiz "Un seul essai" (permadeath), combinable avec "Ordre
+   croissant".

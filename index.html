@@ -146,6 +146,12 @@
               <span data-i18n="quiz.sequential">🔢 Ordre croissant (Pokédex)</span>
             </label>
             <p class="settings-hint" data-i18n="quiz.sequentialHint">Il faut trouver les Pokémon dans l'ordre du Pokédex, du plus petit numéro au plus grand.</p>
+            <label class="settings-toggle">
+              <input type="checkbox" id="quiz-opt-permadeath" />
+              <span class="switch"></span>
+              <span data-i18n="quiz.permadeath">☠️ Un seul essai (Game Over à la 1ère erreur)</span>
+            </label>
+            <p class="settings-hint" data-i18n="quiz.permadeathHint">Une seule réponse invalide (mauvais nom, ou hors d'ordre en mode "Ordre croissant") met fin à la partie immédiatement.</p>
           </div>
 
           <div class="settings-section">
@@ -211,6 +217,7 @@
       <div id="quiz-recap" class="view" hidden>
         <h2 data-i18n="quiz.recapTitle">Résultats</h2>
         <div class="quiz-recap-stat" id="quiz-recap-stat">0%</div>
+        <p id="quiz-gameover-banner" class="quiz-gameover-banner" hidden></p>
         <p id="quiz-recap-text" class="quiz-recap-text"></p>
         <p id="quiz-recap-time" class="quiz-recap-time" hidden></p>
         <p id="quiz-achv-banner" class="quiz-achv-banner" hidden></p>

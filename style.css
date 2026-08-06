@@ -909,6 +909,21 @@ body[data-card-size="small"] .pokemon-card {
   display: none;
 }
 
+.quiz-gameover-banner {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 15%, var(--bg));
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  text-align: center;
+}
+
+.quiz-gameover-banner[hidden] {
+  display: none;
+}
+
 .settings-danger {
   padding: 0.45rem 0.9rem;
   border-radius: 8px;
