@@ -43,6 +43,7 @@ const quizAchvBannerEl = document.getElementById("quiz-achv-banner");
 const quizRecapStatsEl = document.getElementById("quiz-recap-stats");
 const quizRecapListEl = document.getElementById("quiz-recap-list");
 const quizReplayBtn = document.getElementById("quiz-replay-btn");
+const quizConfigureBtn = document.getElementById("quiz-configure-btn");
 const quizHomeBtn = document.getElementById("quiz-home-btn");
 const quizShareBtn = document.getElementById("quiz-share-btn");
 const quizDownloadBtn = document.getElementById("quiz-download-btn");
@@ -160,6 +161,7 @@ function renderQuizPlaying() {
     if (pokemon.id === justFoundId) li.classList.add("just-found");
 
     li.innerHTML = `
+      ${shinySparkleHtml(pokemon.id)}
       <span class="pokemon-number quiz-number">${formatNumber(pokemon.id)}</span>
       <div class="quiz-card-top">
         <span class="sprite-wrap">
@@ -169,7 +171,6 @@ function renderQuizPlaying() {
             alt="${isFound ? name : t("quiz.altHidden")}"
             loading="lazy"
           />
-          ${shinySparkleHtml(pokemon.id)}
         </span>
         <span class="pokemon-name quiz-name" ${isFound ? `title="${name}"` : ""}>${
           isFound ? name : hintedPlaceholder(pokemon)
@@ -254,10 +255,10 @@ function renderRecap() {
     li.className = `pokemon-card recap-card ${isFound ? "caught" : "missing"}`;
 
     li.innerHTML = `
+      ${shinySparkleHtml(pokemon.id)}
       <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
       <span class="sprite-wrap">
         <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
-        ${shinySparkleHtml(pokemon.id)}
       </span>
       <span class="pokemon-name">${name}</span>
     `;
@@ -442,6 +443,7 @@ function startQuiz() {
   quizFoundChipsEl.innerHTML = "";
 
   showQuizFeedback("", null);
+  quizInputEl.classList.remove("shake");
   quizInputEl.value = "";
   updateClearButtonVisibility();
   if (quizShowGrid) renderQuizPlaying();
@@ -473,6 +475,10 @@ function endQuiz() {
     quizAchvBannerEl.hidden = false;
     quizAchvBannerEl.textContent = t("achv.earnedBanner", { gen: quizGeneration, icons });
     renderQuizAchvStrip();
+    newlyEarned.forEach((key) => {
+      const achv = ACHIEVEMENTS.find((a) => a.key === key);
+      showToast({ icon: achv.icon, title: t("toast.achvTitle"), message: t(`achv.${key}`), tone: "toast-achv" });
+    });
   } else {
     quizAchvBannerEl.hidden = true;
     quizAchvBannerEl.textContent = "";
@@ -588,7 +594,11 @@ quizEndBtn.addEventListener("click", () => {
   quizEndedByTimeout = false;
   endQuiz();
 });
-quizReplayBtn.addEventListener("click", backToSetup);
+// "Rejouer" relance directement une partie avec la configuration actuelle
+// (les champs du setup, restés en l'état, sont relus tels quels par
+// startQuiz) ; "Configuration" seul ramène à l'écran de réglages.
+quizReplayBtn.addEventListener("click", startQuiz);
+quizConfigureBtn.addEventListener("click", backToSetup);
 quizHomeBtn.addEventListener("click", () => {
   backToSetup();
   goToMode("quiz");
@@ -605,6 +615,13 @@ function shakeInput() {
   void quizInputEl.offsetWidth;
   quizInputEl.classList.add("shake");
 }
+
+// Sans ce nettoyage, la classe "shake" restait posée après l'animation ; en
+// rejouant juste après une défaite, l'input (recréé caché puis réaffiché)
+// rejouait l'animation CSS comme si une nouvelle erreur venait d'être faite.
+quizInputEl.addEventListener("animationend", (event) => {
+  if (event.animationName === "input-shake") quizInputEl.classList.remove("shake");
+});
 
 function updateClearButtonVisibility() {
   quizInputClearBtn.hidden = quizInputEl.value.length === 0;
@@ -663,6 +680,7 @@ quizFormEl.addEventListener("submit", (event) => {
     if (wonShiny) {
       showQuizFeedback(t("quiz.shinyUnlocked", { name: pokemonName(match) }), "shiny");
       vibrate([20, 30, 20, 30, 80]);
+      showToast({ icon: "✨", title: t("toast.shinyTitle"), message: pokemonName(match), tone: "toast-shiny" });
     } else {
       showQuizFeedback(t("quiz.feedbackCorrect", { name: pokemonName(match) }), "success");
       vibrate(25);
@@ -838,9 +856,9 @@ function currentQuizSummary() {
   return { total, count, percent, minutesLabel, gen: quizGeneration, phrase: scorePhraseFor(percent) };
 }
 
-// Partage uniquement le texte (avec le lien) : c'est la voie la plus fiable,
-// certaines cibles de partage natif ignorent le texte dès qu'une image est
-// jointe, ce qui faisait auparavant disparaître le lien.
+// Copie uniquement le texte (avec le lien) dans le presse-papiers, sans passer
+// par le menu de partage natif de la plateforme : plus rapide, et évite que
+// certaines cibles de partage ignorent le texte dès qu'une image est jointe.
 quizShareBtn.addEventListener("click", async () => {
   const { count, total, percent, minutesLabel, gen, phrase } = currentQuizSummary();
   const url = buildQuizShareUrl();
@@ -851,15 +869,6 @@ quizShareBtn.addEventListener("click", async () => {
     t("share.line3", { minutes: minutesLabel }),
     t("share.line4", { url }),
   ].join("\n");
-
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: t("share.title", { gen }), text });
-      return;
-    } catch {
-      // Partage annulé : on retente une copie presse-papiers ci-dessous.
-    }
-  }
 
   try {
     await navigator.clipboard.writeText(text);

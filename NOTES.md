@@ -64,18 +64,29 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   (`reveal-pop` : flash vert + zoom) au moment où un Pokémon est trouvé, avec
   scroll automatique pour le montrer.
 - **Champ de saisie** : bouton croix pour effacer (visible dès qu'il y a du
-  texte), tremblement (`shake`) + bordure rouge sur une réponse invalide
-  (Pokémon inexistant, ou hors-ordre en mode séquentiel).
+  texte), tremblement (`shake`) + bordure rouge (uniquement, pas d'outline
+  bleu de focus superposé — cf. `.text-input.shake:focus`) sur une réponse
+  invalide (Pokémon inexistant, ou hors-ordre en mode séquentiel). La classe
+  `shake` est retirée sur `animationend`, sinon elle rejouait au réaffichage
+  de l'input (ex: en rejouant juste après une défaite).
 - **Barre sticky** : barre de progression + compteur "trouvés / total", timer,
   champ de saisie et boutons Valider/Abandonner, le tout fixé en haut de
   l'écran pendant le scroll de la grille.
-- **Partage de résultat** : texte (via `navigator.share` ou presse-papiers) et
-  image PNG générée en Canvas (aucune dépendance externe). L'URL de partage
+- **Partage de résultat** : copie le texte (avec le lien) dans le
+  presse-papiers directement, sans passer par le menu de partage natif de la
+  plateforme (`navigator.share` volontairement pas utilisé). Image PNG
+  générée en Canvas séparément (aucune dépendance externe). L'URL de partage
   encode la config exacte de la partie (génération, temps, aides, hardcore,
-  séquentiel) pour que la personne qui l'ouvre parte sur un pied d'égalité.
+  séquentiel, permadeath) pour que la personne qui l'ouvre parte sur un pied
+  d'égalité.
 - **Stats de fin de partie** : précision, rythme (Pokémon/min), trouvaille la
   plus rapide/lente, premier/dernier trouvé — seulement si au moins un
   Pokémon a été trouvé.
+- **Boutons de l'écran de résultats** : "🔁 Rejouer" relance directement une
+  partie avec la config actuelle (appelle `startQuiz()` sans repasser par le
+  setup) ; "⚙️ Configuration" ramène à l'écran de réglages pour changer la
+  config ; "🏠 Accueil" fait la même chose que "Configuration" (redondant en
+  l'état, gardé tel quel car pas demandé de le changer).
 - Commandes de debug dans la console : `debug.fillQuiz()`,
   `debug.unlockShiny(id)`, `debug.unlockAchievement(gen, key)`.
 - **Anti-triche** : pendant une partie (`quizPhase === "playing"`), les
@@ -97,6 +108,19 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   réponse en Quiz (peu importe génération/preset). Déblocage définitif.
 - Le Shiny Dex liste tous les Pokémon d'une génération avec leur sprite
   Shiny, en couleur si débloqué, grisé sinon.
+- L'étoile `.shiny-sparkle` flotte en haut à gauche de la **carte**
+  (`.pokemon-card`, plus proche ancêtre `position:relative`), pas sur le
+  sprite — elle est donc placée en enfant direct du `<li>` dans le HTML, pas
+  nichée dans `.sprite-wrap`. Exception : les puces "trouvé" du Quiz
+  (`.found-chip`, pas une vraie carte) gardent l'étoile sur le sprite via un
+  override CSS dédié.
+
+### Notifications toast (`app.js`)
+- `showToast({ icon, title, message, tone })`, empilées en bas à droite,
+  auto-dismiss après ~4.5s ou au clic. Déclenchées sur nouveau Shiny débloqué
+  (immédiat, pendant la partie) et sur succès débloqué(s) (à la fin de la
+  partie, un toast par succès). Indépendantes de la vue affichée (conteneur
+  fixed en dehors de `#view-quiz`/`#view-list`).
 
 ### Réglages (`settings.js`)
 - Thème (auto/clair/sombre), taille des cartes (défaut : **medium**, pas
@@ -209,3 +233,7 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
 8. Anti-triche : verrouillage de "Liste" et "Shiny Dex" pendant une partie.
 9. Nouveau mode Quiz "Un seul essai" (permadeath), combinable avec "Ordre
    croissant".
+10. Partage = copie presse-papiers uniquement (plus de menu natif), fix
+    tremblement de l'input au rejeu, fix bordure bleu+rouge, système de
+    notifications toast (Shiny/succès), séparation Rejouer/Configuration,
+    étoile Shiny repositionnée sur la carte (pas l'image).

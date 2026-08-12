@@ -76,11 +76,11 @@ function renderList() {
     const name = pokemonName(pokemon);
 
     li.innerHTML = `
+      ${shinySparkleHtml(pokemon.id)}
       <label for="${checkboxId}" class="pokemon-label">
         <span class="pokemon-number">${formatNumber(pokemon.id)}</span>
         <span class="sprite-wrap">
           <img class="pokemon-sprite" src="${getSpriteUrl(pokemon.id)}" alt="${name}" loading="lazy" />
-          ${shinySparkleHtml(pokemon.id)}
         </span>
         <div class="pokemon-info">
           <span class="pokemon-name" title="${name}">${name}</span>

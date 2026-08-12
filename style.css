@@ -347,15 +347,27 @@ main {
   flex-shrink: 0;
 }
 
+/* Positionnée par défaut en haut à gauche de la carte (.pokemon-card, plus
+   proche ancêtre en position:relative) plutôt que sur le sprite lui-même. */
 .shiny-sparkle {
   position: absolute;
-  top: -2px;
-  right: -4px;
-  font-size: 0.85rem;
+  top: -4px;
+  left: -4px;
+  font-size: 0.65rem;
   line-height: 1;
   filter: drop-shadow(0 0 3px rgba(255, 210, 60, 0.9));
   animation: shiny-float 1.6s ease-in-out infinite;
   pointer-events: none;
+  z-index: 1;
+}
+
+/* Les puces "trouvé" (mode Quiz) n'ont pas cette structure de carte : l'étoile
+   y reste ancrée sur le sprite, comme avant. */
+.found-chip .shiny-sparkle {
+  top: -2px;
+  left: auto;
+  right: -4px;
+  font-size: 0.85rem;
 }
 
 @keyframes shiny-float {
@@ -562,6 +574,12 @@ main {
 .text-input.shake {
   animation: input-shake 0.4s ease;
   border-color: var(--accent);
+}
+
+/* Le champ reste focus pendant le shake : sans ça, l'outline bleu du focus se
+   superposait à la bordure rouge de l'erreur. */
+.text-input.shake:focus {
+  outline-color: var(--accent);
 }
 
 @keyframes reveal-pop {
@@ -1320,4 +1338,71 @@ body[data-card-size="small"] .pokemon-card {
   inset: 0;
   pointer-events: none;
   z-index: 200;
+}
+
+/* Notifications toast (bas-droite) : nouveau Shiny, succès débloqué... */
+.toast-container {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(320px, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.toast.toast-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.toast-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.toast-message {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.toast-shiny {
+  border-color: #caa316;
+}
+
+.toast-achv {
+  border-color: var(--accent-2);
 }

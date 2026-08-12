@@ -1,6 +1,38 @@
 const versionEl = document.getElementById("app-version");
 if (versionEl) versionEl.textContent = APP_VERSION;
 
+// Petites notifications empilées en bas à droite (nouveau Shiny, succès
+// débloqué...), indépendantes de la vue affichée. Auto-disparaissent après un
+// délai, ou immédiatement si on clique dessus.
+const toastContainerEl = document.getElementById("toast-container");
+
+function showToast({ icon, title, message, tone }) {
+  const toast = document.createElement("div");
+  toast.className = `toast ${tone || ""}`.trim();
+  toast.innerHTML = `
+    <span class="toast-icon" aria-hidden="true">${icon}</span>
+    <span class="toast-body">
+      <span class="toast-title">${title}</span>
+      ${message ? `<span class="toast-message">${message}</span>` : ""}
+    </span>
+  `;
+  toastContainerEl.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("toast-visible"));
+
+  let dismissed = false;
+  const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
+    toast.classList.remove("toast-visible");
+    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+  };
+  const timeoutId = setTimeout(dismiss, 4500);
+  toast.addEventListener("click", () => {
+    clearTimeout(timeoutId);
+    dismiss();
+  });
+}
+
 // Petite célébration en confettis, déclenchée à 100% de complétion (Liste ou
 // Quiz). Pur canvas, pas de dépendance externe.
 function celebrateConfetti() {
