@@ -958,19 +958,33 @@ window.debug.fillQuiz = function () {
   console.log(`[debug.fillQuiz] ${quizFound.size} / ${roster.length} débloqués (#${keepHidden} exclu).`);
 };
 
-// debug.unlockShiny(id) : débloque directement le Shiny d'un Pokémon (sans
-// attendre le tirage à 1%), pour tester l'affichage sans y passer la nuit.
-window.debug.unlockShiny = function (id) {
-  if (!POKEMON_BY_ID.has(id)) {
-    console.warn(`[debug.unlockShiny] Pokémon #${id} inconnu.`);
+// debug.shiny() : arme le tirage pour que le prochain Pokémon attrapé pour de
+// vrai (via une réponse correcte en Quiz) soit garanti Shiny — passe par le
+// flux normal (texte, vibration, toast). debug.shiny(id) : débloque
+// directement le Shiny d'un Pokémon précis sans attendre de le retrouver, et
+// affiche quand même la notification.
+window.debug.shiny = function (id) {
+  if (id === undefined) {
+    debugForceNextShiny = true;
+    console.log("[debug.shiny] Le prochain Pokémon attrapé sera Shiny.");
     return;
   }
+
+  if (!POKEMON_BY_ID.has(id)) {
+    console.warn(`[debug.shiny] Pokémon #${id} inconnu.`);
+    return;
+  }
+  const alreadyUnlocked = unlockedShinies.has(id);
   unlockedShinies.add(id);
   saveShinies(unlockedShinies);
   if (quizPhase === "playing" && quizShowGrid) renderQuizPlaying();
   if (quizPhase === "recap") renderRecap();
   if (!shinydexOverlay.hidden) renderShinyDex();
-  console.log(`[debug.unlockShiny] Shiny débloqué pour #${id}.`);
+  if (!alreadyUnlocked) {
+    const pokemon = POKEMON_BY_ID.get(id);
+    showToast({ icon: "✨", title: t("toast.shinyTitle"), message: pokemonName(pokemon), tone: "toast-shiny" });
+  }
+  console.log(`[debug.shiny] Shiny débloqué pour #${id}.`);
 };
 
 // debug.unlockAchievement(gen, key) : débloque directement un succès (clés

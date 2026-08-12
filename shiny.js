@@ -19,6 +19,10 @@ function saveShinies(shinySet) {
 
 let unlockedShinies = loadShinies();
 
+// Armé par debug.shiny() (voir quiz.js) pour forcer le prochain tirage,
+// sans passer par le 1% de chance réel.
+let debugForceNextShiny = false;
+
 function isShinyUnlocked(id) {
   return unlockedShinies.has(id);
 }
@@ -27,7 +31,8 @@ function isShinyUnlocked(id) {
 // d'être débloqué à l'instant (pour ne célébrer qu'une fois par Pokémon).
 function tryUnlockShiny(id) {
   if (unlockedShinies.has(id)) return false;
-  if (Math.random() >= SHINY_UNLOCK_CHANCE) return false;
+  if (!debugForceNextShiny && Math.random() >= SHINY_UNLOCK_CHANCE) return false;
+  debugForceNextShiny = false;
   unlockedShinies.add(id);
   saveShinies(unlockedShinies);
   return true;
