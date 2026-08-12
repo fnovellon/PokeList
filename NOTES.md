@@ -88,7 +88,10 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   config ; "🏠 Accueil" fait la même chose que "Configuration" (redondant en
   l'état, gardé tel quel car pas demandé de le changer).
 - Commandes de debug dans la console : `debug.fillQuiz()`,
-  `debug.unlockShiny(id)`, `debug.unlockAchievement(gen, key)`.
+  `debug.unlockShiny(id)`, `debug.unlockAchievement(gen, key)`,
+  `debug.gameOver()` (simule une défaite "Un seul essai" sans y jouer),
+  `debug.toast(tone)` (tone: "shiny" | "achv" | rien, aperçu du rendu),
+  `debug.resetAll()` (reset complet sans la boîte de confirmation).
 - **Anti-triche** : pendant une partie (`quizPhase === "playing"`), les
   boutons "Liste" et "Shiny Dex" du header sont désactivés (`setQuizNavLock`
   dans `app.js`, appelé depuis `startQuiz`/`endQuiz` dans `quiz.js`) — les

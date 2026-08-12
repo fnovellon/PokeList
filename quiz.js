@@ -985,3 +985,37 @@ window.debug.unlockAchievement = function (gen, key) {
   if (!achievementsOverlay.hidden) renderAchievementsModal();
   console.log(`[debug.unlockAchievement] Gen ${gen} / ${key} : ${isNew ? "débloqué" : "déjà obtenu"}.`);
 };
+
+// debug.gameOver() : simule une défaite façon mode "Un seul essai" (bannière
+// 💀 sur le récap), sans avoir à activer le mode et taper une mauvaise
+// réponse pour de vrai.
+window.debug.gameOver = function () {
+  if (quizPhase !== "playing") {
+    console.warn("[debug.gameOver] Aucun quiz en cours.");
+    return;
+  }
+  triggerGameOver();
+  console.log(`[debug.gameOver] Partie terminée (${quizFound.size} / ${quizRoster().length} trouvés).`);
+};
+
+// debug.toast(tone) : affiche un toast d'exemple pour vérifier son rendu sans
+// attendre un vrai Shiny/succès. `tone` : "shiny" | "achv" | tout le reste
+// (générique).
+window.debug.toast = function (tone) {
+  const presets = {
+    shiny: { icon: "✨", title: t("toast.shinyTitle"), message: "Pikachu", cssTone: "toast-shiny" },
+    achv: { icon: "🏆", title: t("toast.achvTitle"), message: t("achv.complete"), cssTone: "toast-achv" },
+  };
+  const preset = presets[tone] || { icon: "🔔", title: "Debug", message: "Toast de test", cssTone: "" };
+  showToast({ icon: preset.icon, title: preset.title, message: preset.message, tone: preset.cssTone });
+  console.log(`[debug.toast] Toast "${tone || "générique"}" affiché.`);
+};
+
+// debug.resetAll() : équivalent de "Tout réinitialiser" dans les Réglages,
+// sans la boîte de confirmation — pratique pour repartir d'un état propre
+// pendant les tests.
+window.debug.resetAll = function () {
+  localStorage.clear();
+  console.log("[debug.resetAll] localStorage vidé, rechargement...");
+  location.reload();
+};
