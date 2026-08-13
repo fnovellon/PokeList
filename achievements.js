@@ -1,7 +1,8 @@
-// Succès : 8 par génération, obtenus en terminant le Quiz de différentes
-// façons (au moins une fois, sous un certain temps, en Hardcore, ou avec tel
-// preset de difficulté). Persisté comme les Shiny (contrairement au reste du
-// Quiz), peu importe combien de fois on rejoue.
+// Succès : 11 par génération, obtenus en terminant le Quiz de différentes
+// façons (au moins une fois, sous un certain temps, en Hardcore, avec tel
+// niveau de difficulté, en mode Chronologique, ou en Un seul essai).
+// Persisté comme les Shiny (contrairement au reste du Quiz), peu importe
+// combien de fois on rejoue.
 const ACHIEVEMENTS_KEY = "pokelist-achievements";
 
 const ACHIEVEMENTS = [
@@ -13,6 +14,9 @@ const ACHIEVEMENTS = [
   { key: "easy", icon: "😌" },
   { key: "normal", icon: "🙂" },
   { key: "hard", icon: "😰" },
+  { key: "veryHard", icon: "💀" },
+  { key: "ordered", icon: "🔢" },
+  { key: "permadeath", icon: "☠️" },
 ];
 
 function loadAchievements() {
@@ -48,7 +52,7 @@ function awardAchievement(gen, key) {
 // Évalue tous les succès applicables à une partie qui vient d'être terminée
 // à 100% ; retourne la liste des clés nouvellement débloquées (peut être
 // vide si tout était déjà en poche).
-function checkAchievements(gen, { elapsedMs, hardcore, preset }) {
+function checkAchievements(gen, { elapsedMs, hardcore, preset, mode, permadeath }) {
   const newly = [];
   const tryAward = (key) => {
     if (awardAchievement(gen, key)) newly.push(key);
@@ -62,6 +66,9 @@ function checkAchievements(gen, { elapsedMs, hardcore, preset }) {
   if (preset === "easy") tryAward("easy");
   if (preset === "normal") tryAward("normal");
   if (preset === "hard") tryAward("hard");
+  if (preset === "veryHard") tryAward("veryHard");
+  if (mode === "ordered") tryAward("ordered");
+  if (permadeath) tryAward("permadeath");
 
   return newly;
 }

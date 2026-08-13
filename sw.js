@@ -1,4 +1,4 @@
-const SHELL_CACHE = "pokelist-shell-v15";
+const SHELL_CACHE = "pokelist-shell-v16";
 const SPRITE_CACHE = "pokelist-sprites-v1";
 
 const SHELL_ASSETS = [
@@ -13,6 +13,7 @@ const SHELL_ASSETS = [
   "./settings.js",
   "./achievements.js",
   "./shinydex.js",
+  "./stats.js",
   "./list.js",
   "./quiz.js",
   "./app.js",

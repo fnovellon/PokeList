@@ -36,6 +36,7 @@
       >📋</button>
       <button id="shinydex-btn" class="icon-btn" data-i18n-aria-label="shinydex.button" data-i18n-title="shinydex.button" aria-label="Shiny Dex" title="Shiny Dex">✨</button>
       <button id="achievements-btn" class="icon-btn" data-i18n-aria-label="achv.button" data-i18n-title="achv.button" aria-label="Succès" title="Succès">🏆</button>
+      <button id="stats-btn" class="icon-btn" data-i18n-aria-label="statsModal.button" data-i18n-title="statsModal.button" aria-label="Stats" title="Stats">📊</button>
       <select id="language-select" class="language-select" aria-label="Langue" data-i18n-aria-label="settings.language">
         <option value="fr">🇫🇷 FR</option>
         <option value="en">🇬🇧 EN</option>
@@ -342,6 +343,16 @@
     </div>
   </div>
 
+  <div id="stats-overlay" class="settings-overlay" hidden>
+    <div class="settings-panel stats-panel" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+      <div class="settings-panel-header">
+        <h2 id="stats-title" data-i18n="statsModal.title">Statistiques</h2>
+        <button id="stats-close" class="settings-close" data-i18n-aria-label="settings.close" aria-label="Fermer">✕</button>
+      </div>
+      <div id="stats-content"></div>
+    </div>
+  </div>
+
   <div id="shinydex-overlay" class="settings-overlay" hidden>
     <div class="settings-panel shinydex-panel" role="dialog" aria-modal="true" aria-labelledby="shinydex-title">
       <div class="settings-panel-header">
@@ -373,6 +384,7 @@
   <script src="settings.js"></script>
   <script src="achievements.js"></script>
   <script src="shinydex.js"></script>
+  <script src="stats.js"></script>
   <script src="list.js"></script>
   <script src="quiz.js"></script>
   <script src="app.js"></script>

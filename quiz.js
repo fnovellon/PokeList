@@ -486,6 +486,7 @@ function startQuiz() {
   quizGameOverByMistake = false;
   quizPhase = "playing";
   setQuizNavLock(true);
+  recordGameStart(quizMode, quizMode === "custom" ? null : quizDifficulty);
 
   quizSetupEl.hidden = true;
   quizRecapEl.hidden = true;
@@ -525,8 +526,17 @@ function endQuiz() {
         elapsedMs: quizElapsedMs,
         hardcore: quizHardcore,
         preset: quizMode === "custom" ? null : quizDifficulty,
+        mode: quizMode,
+        permadeath: quizPermadeath,
       })
     : [];
+
+  recordGameEnd(quizMode, quizMode === "custom" ? null : quizDifficulty, {
+    found: quizFound.size,
+    total: quizRoster().length,
+    elapsedMs: quizElapsedMs,
+    completed: completedGen,
+  });
 
   if (newlyEarned.length > 0) {
     const icons = newlyEarned.map((key) => ACHIEVEMENTS.find((a) => a.key === key).icon).join(" ");
@@ -765,6 +775,7 @@ quizFormEl.addEventListener("submit", (event) => {
 
   if (match) {
     quizFound.add(match.id);
+    recordPokemonFound(match.id);
     quizFindLog.push({ id: match.id, elapsedMs: Date.now() - quizStartedAt });
     justFoundId = match.id;
     // Le tirage Shiny doit avoir lieu avant le rendu, sinon l'étoile
@@ -1066,6 +1077,7 @@ window.debug.fillQuiz = function () {
   roster.forEach((p) => {
     if (p.id === keepHidden || quizFound.has(p.id)) return;
     quizFound.add(p.id);
+    recordPokemonFound(p.id);
     quizFindLog.push({ id: p.id, elapsedMs: Date.now() - quizStartedAt });
     if (!quizShowGrid) addFoundChip(p);
   });

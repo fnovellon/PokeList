@@ -30,6 +30,7 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
 | `achievements.js` | 8 succès par génération, modale + bandeau d'accueil | `pokelist-achievements` |
 | `shiny.js` | Déblocage aléatoire de variantes Shiny pendant le Quiz | `pokelist-shinies` |
 | `shinydex.js` | Modale listant tous les Shiny débloqués/non | — (lit `shiny.js`) |
+| `stats.js` | Stats entre parties (par mode × difficulté), modale 📊 | `pokelist-quiz-stats` |
 | `app.js` | Navigation entre modes, confettis, offsets des barres sticky | — |
 | `version.js` | Numéro de version affiché dans le header (`v42`, `v43`, ...) | — |
 | `sw.js` | Service worker : cache app shell + cache sprites PokeAPI | — (Cache Storage, pas localStorage) |
@@ -121,10 +122,43 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   complétion à 100%, ou abandon).
 
 ### Succès (`achievements.js`)
-- 8 par génération : terminer le Quiz (une fois), sous 30/15/10 min, en
-  Hardcore, ou avec un preset donné (Facile/Normal/Difficile).
+- 11 par génération : terminer le Quiz (une fois), sous 30/15/10 min, en
+  Hardcore, avec une difficulté donnée (Facile/Normal/Difficile/**Très
+  difficile**), en mode **Chronologique**, ou en **Un seul essai** (sans
+  perdre). Les 3 derniers ont été ajoutés après coup pour combler des trous
+  du système d'origine (aucun succès pour "Très difficile", et les modes
+  Chronologique/permadeath n'avaient jamais eu de succès dédié bien que plus
+  difficiles que les presets existants).
+- `checkAchievements(gen, { elapsedMs, hardcore, preset, mode, permadeath })`
+  — `preset` reste `null` en mode Custom (aucun succès de difficulté nommée
+  n'est jamais attribué en Custom, même si ses réglages reproduisent
+  exactement un niveau nommé).
 - Persistés indépendamment de la partie en cours ; ne se réinitialisent
   jamais sauf "Tout réinitialiser" dans les Réglages.
+
+### Stats entre parties (`stats.js`)
+- Clé `pokelist-quiz-stats`. Découpées par **mode nommé × difficulté**
+  uniquement (8 compartiments : Classique/Chronologique × 4 niveaux),
+  agrégées toutes générations confondues (non demandé de les scinder par
+  génération). Custom n'a qu'un compteur de parties jouées — pas de détail,
+  ses réglages étant arbitraires.
+- Par compartiment : `gamesPlayed`, `completions`, `bestTimeMs` (seulement
+  sur les parties complétées à 100%, `null` tant qu'aucune ne l'a été),
+  `bestPercent`, `totalFound` (cumul de captures toutes parties confondues
+  dans ce compartiment).
+- `pokemonFound` : compteur **global** (tous modes confondus, y compris
+  Custom) du nombre de fois où chaque Pokémon a été découvert — pas encore
+  affiché dans l'UI (prévu pour un futur mode "Révision"), mais déjà
+  alimenté par `recordPokemonFound(id)` à chaque capture réussie (y compris
+  via `debug.fillQuiz()`, pour rester cohérent en tests).
+- Hooks dans `quiz.js` : `recordGameStart` (dans `startQuiz`, juste après
+  `quizPhase = "playing"`), `recordPokemonFound` (dans le handler de
+  soumission, juste après `quizFound.add`), `recordGameEnd` (dans `endQuiz`,
+  à côté du calcul de `completedGen`).
+- Modale calquée sur Succès/Shiny Dex (`#stats-overlay`, bouton header 📊),
+  mais **sans** onglets par génération (non pertinent ici) et **sans**
+  verrouillage anti-triche (aucune réponse n'est révélée, contrairement à
+  Liste/Shiny Dex).
 
 ### Shiny (`shiny.js` / `shinydex.js`)
 - 1% de chance de débloquer la variante Shiny d'un Pokémon à chaque bonne
@@ -288,3 +322,7 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     `title` natif du navigateur, jugé trop lent à s'afficher ; modes de jeu
     renommés "Classique"/"Chronologique" (au lieu de décrire le mécanisme) et
     disposés en une colonne centrée (`.settings-options-column`).
+15. 3 nouveaux succès (Très difficile, Chronologique, Un seul essai) pour
+    combler les trous du système existant, et ajout des Stats entre parties
+    (`stats.js`, nouvelle modale 📊) découpées par mode × difficulté, à la
+    demande de l'utilisateur.
