@@ -741,6 +741,36 @@ function updateClearButtonVisibility() {
 
 quizInputEl.addEventListener("input", updateClearButtonVisibility);
 
+// Validation automatique : pratique avec la dictée vocale du clavier
+// (mobile), qui ne déclenche pas d'événement "submit". Dès que la saisie
+// correspond EXACTEMENT (distance 0, jamais la tolérance aux fautes de
+// frappe) à un Pokémon valide, on soumet le formulaire après une courte
+// pause — le temps de laisser la dictée finir d'écrire, plutôt que de
+// valider au premier caractère qui complète accidentellement un nom plus
+// court (ex: "Ossatueur" ne doit pas déclencher "Osselait" en cours de frappe).
+let quizAutoSubmitTimer = null;
+
+function scheduleAutoSubmitCheck() {
+  if (quizAutoSubmitTimer) clearTimeout(quizAutoSubmitTimer);
+  quizAutoSubmitTimer = setTimeout(() => {
+    quizAutoSubmitTimer = null;
+    if (quizPhase !== "playing") return;
+
+    const guess = quizInputEl.value.trim();
+    if (!guess) return;
+
+    const roster = quizRoster();
+    const unfound = roster.filter((p) => !quizFound.has(p.id));
+    const nextRequired = quizSequential ? unfound[0] ?? null : null;
+    const candidates = quizSequential ? (nextRequired ? [nextRequired] : []) : unfound;
+    const isExactMatch = candidates.some((p) => guessMatchDistance(guess, p) === 0);
+
+    if (isExactMatch) quizFormEl.requestSubmit();
+  }, 500);
+}
+
+quizInputEl.addEventListener("input", scheduleAutoSubmitCheck);
+
 quizInputClearBtn.addEventListener("click", () => {
   quizInputEl.value = "";
   updateClearButtonVisibility();

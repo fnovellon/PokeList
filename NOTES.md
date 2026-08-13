@@ -113,6 +113,18 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   `debug.shiny()` (le prochain Pokémon attrapé pour de vrai sera Shiny — passe
   par `tryUnlockShiny`, donc déclenche aussi la notif) et `debug.shiny(id)`
   (débloque directement le Shiny d'un id précis, avec la même notif).
+- **Validation automatique** : pensée pour la dictée vocale du clavier mobile
+  (aucune intégration Web Speech API — le micro du clavier natif tape déjà
+  dans le champ, pas besoin de code dédié). Dès que la saisie correspond
+  **exactement** (`guessMatchDistance(guess, p) === 0`, jamais la tolérance
+  aux fautes de frappe) à un Pokémon valide, un debounce de 500ms
+  (`scheduleAutoSubmitCheck`, écouteur `input` sur `quizInputEl`) déclenche
+  `quizFormEl.requestSubmit()` — réutilise donc tout le handler `submit`
+  existant (tirage Shiny, toast, succès, stats, permadeath/séquentiel) plutôt
+  que de dupliquer la logique. Volontairement limité aux matchs exacts (pas
+  de fuzzy) : un match approximatif pourrait valider prématurément pendant
+  que l'utilisateur tape encore un nom plus long. Toujours actif, pas de
+  réglage dédié (comportement jugé strictement additif et à faible risque).
 - **Anti-triche** : pendant une partie (`quizPhase === "playing"`), les
   boutons "Liste" et "Shiny Dex" du header sont désactivés (`setQuizNavLock`
   dans `app.js`, appelé depuis `startQuiz`/`endQuiz` dans `quiz.js`) — les
@@ -326,3 +338,6 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     combler les trous du système existant, et ajout des Stats entre parties
     (`stats.js`, nouvelle modale 📊) découpées par mode × difficulté, à la
     demande de l'utilisateur.
+16. Validation automatique de la réponse (Quiz) : dès qu'un match exact est
+    tapé/dicté, soumission automatique après un court debounce — pensé pour
+    la dictée vocale du clavier mobile (pas d'intégration Web Speech API).
