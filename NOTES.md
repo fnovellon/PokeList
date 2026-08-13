@@ -59,10 +59,16 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
     mort subite (1 erreur = Game Over) ; Très difficile = aucune aide + mort
     subite + orthographe exacte.
   - **"🛠️ Custom"** : panneau manuel complet (temps, aides, indice sur le
-    prochain, ordre croissant, mort subite, orthographe exacte), affiché
-    uniquement dans ce mode (pas de preview désactivée comme avant — plus
-    compact). Descriptions en tooltips (`title`/`data-i18n-title`) plutôt
-    qu'en texte toujours visible.
+    prochain, ordre croissant, mort subite, orthographe exacte). Le panneau
+    reste **toujours visible** (grisé + pré-rempli avec l'aperçu du niveau
+    choisi tant qu'on n'est pas en Custom), même logique que l'ancien système
+    de presets, portée sur le nouveau modèle mode+difficulté
+    (`updateCustomPanelState()`). Descriptions en tooltips au survol d'une
+    icône "(?)" dédiée (`.info-icon`, `title`/`data-i18n-title`) — placée en
+    dehors du `<label>` pour les toggles afin de ne pas déclencher le
+    interrupteur au clic, et dans un `<span>` séparé du libellé pour les
+    boutons de difficulté (sinon `data-i18n` sur le bouton effaçait l'icône
+    au chargement des traductions).
   - Table des 2 modes nommés × 4 difficultés dans `GAME_MODES` (`quiz.js`) ;
     `effectiveQuizSettings()` calcule les réglages réels à appliquer selon le
     mode (table ou lecture directe du panneau Custom) ; `detectModeAndDifficulty()`
@@ -262,3 +268,8 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     ("Remplir le Pokédex" / "Dans l'ordre") × 4 difficultés + mode Custom
     redessiné compact avec tooltips, nouveau widget "indice sur le prochain"
     (type + 1ère lettre) pour le mode "Dans l'ordre"/Facile.
+13. Retour sur la disposition : panneau détaillé à nouveau toujours visible
+    (grisé + aperçu) au lieu de caché hors Custom ; tooltips déplacés sur une
+    icône "(?)" dédiée au lieu de toute la ligne/bouton ; au passage, fix
+    d'un bug où 3 tooltips (grille/types/lettre) affichaient le libellé du
+    toggle au lieu de sa description.

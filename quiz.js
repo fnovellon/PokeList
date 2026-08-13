@@ -7,7 +7,6 @@ const quizModeBtns = document.querySelectorAll("#quiz-mode-options .settings-opt
 const quizDifficultyFillEl = document.getElementById("quiz-difficulty-fill");
 const quizDifficultyOrderedEl = document.getElementById("quiz-difficulty-ordered");
 const quizDifficultyBtns = document.querySelectorAll("#quiz-difficulty-fill .settings-option, #quiz-difficulty-ordered .settings-option");
-const quizCustomOptionsEl = document.getElementById("quiz-custom-options");
 const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settings-option");
 const quizOptTypesEl = document.getElementById("quiz-opt-types");
 const quizOptGridEl = document.getElementById("quiz-opt-grid");
@@ -559,35 +558,65 @@ quizTimeOptionBtns.forEach((btn) => {
   });
 });
 
-// Dans le panneau Custom, "types" et "indice première lettre" n'ont de sens
-// que si la grille (qui les affiche) est elle-même activée.
-function syncGridDependentToggles() {
-  const gridOn = quizOptGridEl.checked;
-  quizOptTypesEl.disabled = !gridOn;
-  quizOptHintsEl.disabled = !gridOn;
-  if (!gridOn) {
+// Le panneau détaillé reste toujours visible (même hors "Custom"), pour
+// qu'on voie ce que chaque mode/difficulté applique : grisé et pré-rempli
+// avec l'aperçu du niveau choisi, éditable seulement en "Custom". "Types" et
+// "indice première lettre" n'ont en plus de sens que si la grille (qui les
+// affiche) est elle-même activée.
+function updateCustomPanelState() {
+  const isCustom = quizMode === "custom";
+
+  if (!isCustom) {
+    const modeDef = GAME_MODES[quizMode];
+    const diff = modeDef.difficulties[quizDifficulty];
+    quizTimeOptionBtns.forEach((btn) => {
+      btn.classList.toggle("active", Number(btn.dataset.minutes) === modeDef.minutes);
+    });
+    quizOptGridEl.checked = diff.grid;
+    quizOptTypesEl.checked = diff.types;
+    quizOptHintsEl.checked = diff.hints;
+    quizOptNextHintEl.checked = diff.nextHint;
+    quizOptSequentialEl.checked = modeDef.sequential;
+    quizOptPermadeathEl.checked = diff.permadeath;
+    quizOptHardcoreEl.checked = diff.hardcore;
+  }
+
+  quizTimeOptionBtns.forEach((btn) => {
+    btn.disabled = !isCustom;
+  });
+  quizOptGridEl.disabled = !isCustom;
+  quizOptSequentialEl.disabled = !isCustom;
+  quizOptPermadeathEl.disabled = !isCustom;
+  quizOptHardcoreEl.disabled = !isCustom;
+  quizOptNextHintEl.disabled = !isCustom;
+  quizOptTypesEl.disabled = !isCustom || !quizOptGridEl.checked;
+  quizOptHintsEl.disabled = !isCustom || !quizOptGridEl.checked;
+
+  if (isCustom && !quizOptGridEl.checked) {
     quizOptTypesEl.checked = false;
     quizOptHintsEl.checked = false;
   }
 }
 
-quizOptGridEl.addEventListener("change", syncGridDependentToggles);
+quizOptGridEl.addEventListener("change", updateCustomPanelState);
 
 // Sélectionne le niveau de difficulté courant (parmi les 4 du mode "fill" ou
 // "ordered") ; sans effet sur l'état de jeu tant que le mode reste "custom".
 function applyDifficulty(difficulty) {
   quizDifficulty = difficulty;
   quizDifficultyBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.difficulty === difficulty));
+  updateCustomPanelState();
 }
 
 // Bascule entre les 3 modes de jeu : affiche la bonne rangée de difficultés
-// (4 niveaux, propres à chaque mode) ou le panneau Custom complet.
+// (4 niveaux, propres à chaque mode) ; le panneau détaillé reste affiché dans
+// tous les cas (cf. updateCustomPanelState).
 function applyMode(mode) {
   quizMode = mode;
   quizModeBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
   quizDifficultyFillEl.hidden = mode !== "fill";
   quizDifficultyOrderedEl.hidden = mode !== "ordered";
-  quizCustomOptionsEl.hidden = mode !== "custom";
+  updateCustomPanelState();
 }
 
 quizModeBtns.forEach((btn) => {
@@ -599,7 +628,6 @@ quizDifficultyBtns.forEach((btn) => {
 
 applyMode(quizMode);
 applyDifficulty(quizDifficulty);
-syncGridDependentToggles();
 
 // Réglages effectifs de la partie à lancer : ceux du niveau de difficulté du
 // mode choisi, ou la lecture directe des champs du panneau Custom.
@@ -1011,7 +1039,6 @@ function applySharedQuizSettings(params) {
   quizOptHardcoreEl.checked = settings.hardcore;
   quizOptSequentialEl.checked = settings.sequential;
   quizOptPermadeathEl.checked = settings.permadeath;
-  syncGridDependentToggles();
 
   const detected = detectModeAndDifficulty(settings);
   if (detected) {
