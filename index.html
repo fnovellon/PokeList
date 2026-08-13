@@ -98,13 +98,13 @@
 
         <div class="settings-section">
           <h3 data-i18n="quiz.modeTitle">Mode de jeu</h3>
-          <div class="settings-options" id="quiz-mode-options">
+          <div class="settings-options settings-options-column" id="quiz-mode-options">
             <button class="settings-option settings-option-stacked active" data-mode="fill">
-              <span data-i18n="quiz.modeFill">📖 Remplir le Pokédex</span>
+              <span data-i18n="quiz.modeFill">📖 Classique</span>
               <span class="settings-option-sub" data-i18n="quiz.modeFillSub">Dans l'ordre que tu veux</span>
             </button>
             <button class="settings-option settings-option-stacked" data-mode="ordered">
-              <span data-i18n="quiz.modeOrdered">🔢 Dans l'ordre</span>
+              <span data-i18n="quiz.modeOrdered">🔢 Chronologique</span>
               <span class="settings-option-sub" data-i18n="quiz.modeOrderedSub">Du plus petit numéro au plus grand</span>
             </button>
             <button class="settings-option settings-option-stacked" data-mode="custom">
@@ -117,44 +117,20 @@
         <div class="settings-section" id="quiz-difficulty-fill">
           <h3 data-i18n="quiz.difficultyTitle">Difficulté</h3>
           <div class="settings-options">
-            <button class="settings-option active" data-difficulty="easy">
-              <span data-i18n="quiz.presetEasy">😌 Facile</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipFillEasy" title="Grille, types et première lettre affichés.">?</span>
-            </button>
-            <button class="settings-option" data-difficulty="normal">
-              <span data-i18n="quiz.presetNormal">🙂 Normal</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipFillNormal" title="Grille affichée, sans les types ni la première lettre.">?</span>
-            </button>
-            <button class="settings-option" data-difficulty="hard">
-              <span data-i18n="quiz.presetHard">😰 Difficile</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipFillHard" title="Aucune aide.">?</span>
-            </button>
-            <button class="settings-option" data-difficulty="veryHard">
-              <span data-i18n="quiz.presetVeryHard">💀 Très difficile</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipFillVeryHard" title="Aucune aide, orthographe exacte requise.">?</span>
-            </button>
+            <button class="settings-option active" data-difficulty="easy" data-i18n="quiz.presetEasy">😌 Facile</button>
+            <button class="settings-option" data-difficulty="normal" data-i18n="quiz.presetNormal">🙂 Normal</button>
+            <button class="settings-option" data-difficulty="hard" data-i18n="quiz.presetHard">😰 Difficile</button>
+            <button class="settings-option" data-difficulty="veryHard" data-i18n="quiz.presetVeryHard">💀 Très difficile</button>
           </div>
         </div>
 
         <div class="settings-section" id="quiz-difficulty-ordered" hidden>
           <h3 data-i18n="quiz.difficultyTitle">Difficulté</h3>
           <div class="settings-options">
-            <button class="settings-option" data-difficulty="easy">
-              <span data-i18n="quiz.presetEasy">😌 Facile</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipOrderedEasy" title="Pas de grille, mais le type et la première lettre du prochain Pokémon sont affichés.">?</span>
-            </button>
-            <button class="settings-option active" data-difficulty="normal">
-              <span data-i18n="quiz.presetNormal">🙂 Normal</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipOrderedNormal" title="Aucune aide.">?</span>
-            </button>
-            <button class="settings-option" data-difficulty="hard">
-              <span data-i18n="quiz.presetHard">😰 Difficile</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipOrderedHard" title="Aucune aide, une seule erreur autorisée (Game Over immédiat).">?</span>
-            </button>
-            <button class="settings-option" data-difficulty="veryHard">
-              <span data-i18n="quiz.presetVeryHard">💀 Très difficile</span>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.tipOrderedVeryHard" title="Aucune aide, une seule erreur autorisée, orthographe exacte requise.">?</span>
-            </button>
+            <button class="settings-option" data-difficulty="easy" data-i18n="quiz.presetEasy">😌 Facile</button>
+            <button class="settings-option active" data-difficulty="normal" data-i18n="quiz.presetNormal">🙂 Normal</button>
+            <button class="settings-option" data-difficulty="hard" data-i18n="quiz.presetHard">😰 Difficile</button>
+            <button class="settings-option" data-difficulty="veryHard" data-i18n="quiz.presetVeryHard">💀 Très difficile</button>
           </div>
         </div>
 
@@ -178,7 +154,7 @@
                 <span class="switch"></span>
                 <span data-i18n="quiz.helpGrid">🔢 Afficher la grille (numéros)</span>
               </label>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.helpGridTip" title="Affiche une grille avec les numéros de tous les Pokémon.">?</span>
+              <span class="info-icon" tabindex="0" data-i18n-tooltip="quiz.helpGridTip" data-tooltip="Affiche une grille avec les numéros de tous les Pokémon.">?</span>
             </div>
             <div class="settings-toggle-row settings-toggle-indented">
               <label class="settings-toggle">
@@ -186,7 +162,7 @@
                 <span class="switch"></span>
                 <span data-i18n="quiz.helpTypes">🏷️ Afficher les types</span>
               </label>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.helpTypesTip" title="Affiche les types de chaque Pokémon dans la grille.">?</span>
+              <span class="info-icon" tabindex="0" data-i18n-tooltip="quiz.helpTypesTip" data-tooltip="Affiche les types de chaque Pokémon dans la grille.">?</span>
             </div>
             <div class="settings-toggle-row settings-toggle-indented">
               <label class="settings-toggle">
@@ -194,7 +170,7 @@
                 <span class="switch"></span>
                 <span data-i18n="quiz.helpFirstLetter">🔤 Afficher la première lettre</span>
               </label>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.helpFirstLetterTip" title="Révèle la première lettre de chaque nom dans la grille.">?</span>
+              <span class="info-icon" tabindex="0" data-i18n-tooltip="quiz.helpFirstLetterTip" data-tooltip="Révèle la première lettre de chaque nom dans la grille.">?</span>
             </div>
             <div class="settings-toggle-row">
               <label class="settings-toggle">
@@ -202,7 +178,7 @@
                 <span class="switch"></span>
                 <span data-i18n="quiz.nextHint">🔍 Indice sur le prochain (type + lettre)</span>
               </label>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.nextHintTip" title="Affiche le type et la première lettre du prochain Pokémon à trouver, sans afficher la grille.">?</span>
+              <span class="info-icon" tabindex="0" data-i18n-tooltip="quiz.nextHintTip" data-tooltip="Affiche le type et la première lettre du prochain Pokémon à trouver, sans afficher la grille.">?</span>
             </div>
           </div>
 
@@ -214,7 +190,7 @@
                 <span class="switch"></span>
                 <span data-i18n="quiz.sequential">🔢 Ordre croissant (Pokédex)</span>
               </label>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.sequentialHint" title="Il faut trouver les Pokémon dans l'ordre du Pokédex, du plus petit numéro au plus grand.">?</span>
+              <span class="info-icon" tabindex="0" data-i18n-tooltip="quiz.sequentialHint" data-tooltip="Il faut trouver les Pokémon dans l'ordre du Pokédex, du plus petit numéro au plus grand.">?</span>
             </div>
             <div class="settings-toggle-row">
               <label class="settings-toggle">
@@ -222,7 +198,7 @@
                 <span class="switch"></span>
                 <span data-i18n="quiz.permadeath">☠️ Un seul essai (Game Over à la 1ère erreur)</span>
               </label>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.permadeathHint" title="Une seule réponse invalide (mauvais nom, ou hors d'ordre en mode &quot;Ordre croissant&quot;) met fin à la partie immédiatement.">?</span>
+              <span class="info-icon" tabindex="0" data-i18n-tooltip="quiz.permadeathHint" data-tooltip="Une seule réponse invalide (mauvais nom, ou hors d'ordre en mode &quot;Ordre croissant&quot;) met fin à la partie immédiatement.">?</span>
             </div>
             <div class="settings-toggle-row">
               <label class="settings-toggle">
@@ -230,7 +206,7 @@
                 <span class="switch"></span>
                 <span data-i18n="quiz.hardcore">🎯 Mode Hardcore (orthographe exacte)</span>
               </label>
-              <span class="info-icon" tabindex="0" data-i18n-title="quiz.hardcoreHint" title="Aucune tolérance aux fautes de frappe : seuls la casse et la ponctuation restent ignorées.">?</span>
+              <span class="info-icon" tabindex="0" data-i18n-tooltip="quiz.hardcoreHint" data-tooltip="Aucune tolérance aux fautes de frappe : seuls la casse et la ponctuation restent ignorées.">?</span>
             </div>
           </div>
         </div>

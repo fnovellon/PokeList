@@ -825,6 +825,17 @@ body[data-card-size="small"] .pokemon-card {
   gap: 0.5rem;
 }
 
+/* Modes de jeu : une colonne centrée plutôt que la grille flex-wrap standard. */
+.settings-options-column {
+  flex-direction: column;
+  align-items: center;
+}
+
+.settings-options-column .settings-option {
+  width: 100%;
+  max-width: 280px;
+}
+
 .settings-option {
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
@@ -1025,8 +1036,8 @@ body[data-card-size="small"] .pokemon-card {
   opacity: 0.35;
 }
 
-/* Icône "(?)" : seule cible du survol pour afficher une description en
-   tooltip (title natif), plutôt que toute la ligne/le bouton. */
+/* Icône "(?)" : seule cible du survol pour afficher une description, via le
+   tooltip custom ci-dessous (pas le `title` natif du navigateur). */
 .info-icon {
   display: inline-flex;
   align-items: center;
@@ -1049,6 +1060,35 @@ body[data-card-size="small"] .pokemon-card {
 .info-icon:hover,
 .info-icon:focus-visible {
   opacity: 1;
+}
+
+/* Tooltip custom (voir app.js) : plus réactif que le `title` natif (pas de
+   délai d'affichage du navigateur), positionné dynamiquement au-dessus (ou
+   en-dessous si pas la place) de l'icône survolée. */
+.custom-tooltip {
+  position: fixed;
+  z-index: 300;
+  max-width: 240px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  background: #1c1f2a;
+  color: #fff;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.08s ease, transform 0.08s ease;
+  pointer-events: none;
+}
+
+.custom-tooltip-below {
+  transform: translateY(-4px);
+}
+
+.custom-tooltip-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .settings-toggle input {

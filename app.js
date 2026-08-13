@@ -33,6 +33,65 @@ function showToast({ icon, title, message, tone }) {
   });
 }
 
+// Tooltip custom pour les icônes "(?)" (`.info-icon`) : apparaît/disparaît
+// quasi instantanément au survol/focus, contrairement au `title` natif du
+// navigateur (délai d'affichage, peu réactif). Un seul élément partagé,
+// repositionné à chaque survol.
+const customTooltipEl = document.createElement("div");
+customTooltipEl.className = "custom-tooltip";
+customTooltipEl.setAttribute("role", "tooltip");
+document.body.appendChild(customTooltipEl);
+
+let tooltipTarget = null;
+
+function positionCustomTooltip(target) {
+  const targetRect = target.getBoundingClientRect();
+  const tipRect = customTooltipEl.getBoundingClientRect();
+
+  let left = targetRect.left + targetRect.width / 2 - tipRect.width / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+
+  let top = targetRect.top - tipRect.height - 8;
+  let below = false;
+  if (top < 8) {
+    top = targetRect.bottom + 8;
+    below = true;
+  }
+
+  customTooltipEl.style.left = `${left}px`;
+  customTooltipEl.style.top = `${top}px`;
+  customTooltipEl.classList.toggle("custom-tooltip-below", below);
+}
+
+function showCustomTooltip(target) {
+  const text = target.dataset.tooltip;
+  if (!text) return;
+  tooltipTarget = target;
+  customTooltipEl.textContent = text;
+  customTooltipEl.classList.add("custom-tooltip-visible");
+  positionCustomTooltip(target);
+}
+
+function hideCustomTooltip() {
+  tooltipTarget = null;
+  customTooltipEl.classList.remove("custom-tooltip-visible");
+}
+
+document.addEventListener("pointerover", (event) => {
+  const target = event.target.closest(".info-icon");
+  if (target) showCustomTooltip(target);
+});
+document.addEventListener("pointerout", (event) => {
+  if (event.target.closest(".info-icon") === tooltipTarget) hideCustomTooltip();
+});
+document.addEventListener("focusin", (event) => {
+  const target = event.target.closest(".info-icon");
+  if (target) showCustomTooltip(target);
+});
+document.addEventListener("focusout", (event) => {
+  if (event.target.closest(".info-icon") === tooltipTarget) hideCustomTooltip();
+});
+
 // Petite célébration en confettis, déclenchée à 100% de complétion (Liste ou
 // Quiz). Pur canvas, pas de dépendance externe.
 function celebrateConfetti() {

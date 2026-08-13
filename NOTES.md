@@ -63,12 +63,11 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
     reste **toujours visible** (grisé + pré-rempli avec l'aperçu du niveau
     choisi tant qu'on n'est pas en Custom), même logique que l'ancien système
     de presets, portée sur le nouveau modèle mode+difficulté
-    (`updateCustomPanelState()`). Descriptions en tooltips au survol d'une
-    icône "(?)" dédiée (`.info-icon`, `title`/`data-i18n-title`) — placée en
-    dehors du `<label>` pour les toggles afin de ne pas déclencher le
-    interrupteur au clic, et dans un `<span>` séparé du libellé pour les
-    boutons de difficulté (sinon `data-i18n` sur le bouton effaçait l'icône
-    au chargement des traductions).
+    (`updateCustomPanelState()`). Descriptions en tooltip **custom** (pas le
+    `title` natif, jugé trop lent) au survol d'une icône "(?)" dédiée
+    (`.info-icon`) — placée en dehors du `<label>` pour ne pas déclencher
+    l'interrupteur au clic. Uniquement sur les réglages Custom, pas sur les
+    boutons de difficulté. Voir "Tooltip custom" plus bas.
   - Table des 2 modes nommés × 4 difficultés dans `GAME_MODES` (`quiz.js`) ;
     `effectiveQuizSettings()` calcule les réglages réels à appliquer selon le
     mode (table ou lecture directe du panneau Custom) ; `detectModeAndDifficulty()`
@@ -145,6 +144,16 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   (immédiat, pendant la partie) et sur succès débloqué(s) (à la fin de la
   partie, un toast par succès). Indépendantes de la vue affichée (conteneur
   fixed en dehors de `#view-quiz`/`#view-list`).
+
+### Tooltip custom (`app.js`)
+- Un seul élément `.custom-tooltip` partagé, repositionné à chaque survol
+  d'un `.info-icon` (délégation d'événements `pointerover`/`pointerout`/
+  `focusin`/`focusout` sur `document`, pas d'écouteur par élément).
+  Transition ~80ms (contre le délai natif du `title` du navigateur, jugé pas
+  assez réactif). Texte lu dans `el.dataset.tooltip`, rempli à la traduction
+  par `applyTranslations()` via `data-i18n-tooltip` (voir `i18n.js`) — on
+  n'utilise **jamais** `title`/`data-i18n-title` sur un `.info-icon`, sinon
+  le tooltip natif du navigateur s'affiche en plus du custom.
 
 ### Réglages (`settings.js`)
 - Thème (auto/clair/sombre), taille des cartes (défaut : **medium**, pas
@@ -273,3 +282,9 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     icône "(?)" dédiée au lieu de toute la ligne/bouton ; au passage, fix
     d'un bug où 3 tooltips (grille/types/lettre) affichaient le libellé du
     toggle au lieu de sa description.
+14. Tooltips retirés des boutons de difficulté (gardés seulement sur les
+    réglages Custom) ; tooltip **custom** (`.custom-tooltip` dans `app.js` +
+    `data-i18n-tooltip`/`data-tooltip` dans `i18n.js`) en remplacement du
+    `title` natif du navigateur, jugé trop lent à s'afficher ; modes de jeu
+    renommés "Classique"/"Chronologique" (au lieu de décrire le mécanisme) et
+    disposés en une colonne centrée (`.settings-options-column`).
