@@ -509,6 +509,39 @@ main {
   margin-bottom: 0.6rem;
 }
 
+.quiz-next-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.6rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-2) 10%, var(--bg));
+  border: 1px solid var(--accent-2);
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.quiz-next-hint[hidden] {
+  display: none;
+}
+
+.quiz-next-hint-label {
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.quiz-next-hint-letter {
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+}
+
+.quiz-next-hint .hint-revealed {
+  letter-spacing: normal;
+}
+
 #quiz-form {
   padding-bottom: 0.75rem;
 }

@@ -3,24 +3,47 @@ const quizPlayingEl = document.getElementById("quiz-playing");
 const quizRecapEl = document.getElementById("quiz-recap");
 
 const quizGenBtns = document.querySelectorAll("#quiz-gen-options .settings-option");
-const quizPresetBtns = document.querySelectorAll("#quiz-preset-options .settings-option");
+const quizModeBtns = document.querySelectorAll("#quiz-mode-options .settings-option");
+const quizDifficultyFillEl = document.getElementById("quiz-difficulty-fill");
+const quizDifficultyOrderedEl = document.getElementById("quiz-difficulty-ordered");
+const quizDifficultyBtns = document.querySelectorAll("#quiz-difficulty-fill .settings-option, #quiz-difficulty-ordered .settings-option");
+const quizCustomOptionsEl = document.getElementById("quiz-custom-options");
 const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settings-option");
 const quizOptTypesEl = document.getElementById("quiz-opt-types");
 const quizOptGridEl = document.getElementById("quiz-opt-grid");
 const quizOptHintsEl = document.getElementById("quiz-opt-hints");
+const quizOptNextHintEl = document.getElementById("quiz-opt-nexthint");
 const quizOptHardcoreEl = document.getElementById("quiz-opt-hardcore");
 const quizOptSequentialEl = document.getElementById("quiz-opt-sequential");
 const quizOptPermadeathEl = document.getElementById("quiz-opt-permadeath");
 const quizStartBtn = document.getElementById("quiz-start-btn");
+const quizNextHintEl = document.getElementById("quiz-next-hint");
 
-// Les 4 presets fixent temps + aides + tolérance orthographique en un clic ;
-// "Custom" laisse les réglages détaillés éditables pour un réglage manuel (les
-// autres presets les affichent aussi, désactivés, en aperçu de leurs valeurs).
-const QUIZ_PRESETS = {
-  easy: { minutes: 0, grid: true, types: true, hints: true, hardcore: false, sequential: false, permadeath: false },
-  normal: { minutes: 0, grid: false, types: false, hints: false, hardcore: false, sequential: false, permadeath: false },
-  hard: { minutes: 10, grid: false, types: false, hints: false, hardcore: false, sequential: false, permadeath: false },
-  veryHard: { minutes: 10, grid: false, types: false, hints: false, hardcore: true, sequential: false, permadeath: false },
+// Les 2 modes nommés ("fill" = remplir le Pokédex dans l'ordre voulu,
+// "ordered" = dans l'ordre du Pokédex) fixent temps + aides + règles en un
+// clic via leurs 4 niveaux de difficulté ; "Custom" (non listé ici) laisse
+// tout éditable manuellement dans #quiz-custom-options.
+const GAME_MODES = {
+  fill: {
+    minutes: 0,
+    sequential: false,
+    difficulties: {
+      easy: { grid: true, types: true, hints: true, hardcore: false, permadeath: false, nextHint: false },
+      normal: { grid: true, types: false, hints: false, hardcore: false, permadeath: false, nextHint: false },
+      hard: { grid: false, types: false, hints: false, hardcore: false, permadeath: false, nextHint: false },
+      veryHard: { grid: false, types: false, hints: false, hardcore: true, permadeath: false, nextHint: false },
+    },
+  },
+  ordered: {
+    minutes: 0,
+    sequential: true,
+    difficulties: {
+      easy: { grid: false, types: false, hints: false, hardcore: false, permadeath: false, nextHint: true },
+      normal: { grid: false, types: false, hints: false, hardcore: false, permadeath: false, nextHint: false },
+      hard: { grid: false, types: false, hints: false, hardcore: false, permadeath: true, nextHint: false },
+      veryHard: { grid: false, types: false, hints: false, hardcore: true, permadeath: true, nextHint: false },
+    },
+  },
 };
 
 const quizListEl = document.getElementById("quiz-list");
@@ -56,11 +79,13 @@ let quizDeadline = null; // timestamp ms, ou null si infini
 let quizShowTypes = false;
 let quizShowGrid = true;
 let quizShowHints = false;
+let quizShowNextHint = false;
 let quizHardcore = false;
 let quizSequential = false;
 let quizPermadeath = false;
 let quizGameOverByMistake = false;
-let quizPreset = "normal";
+let quizMode = "fill"; // "fill" | "ordered" | "custom"
+let quizDifficulty = "easy"; // "easy" | "normal" | "hard" | "veryHard" ; sans effet si quizMode === "custom"
 let quizGeneration = 1;
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
@@ -145,6 +170,32 @@ function hintedPlaceholder(pokemon) {
   const revealed = name.slice(0, 1);
   const hidden = "?".repeat(Math.max(1, name.length - 1));
   return `<span class="hint-revealed">${revealed}</span>${hidden}`;
+}
+
+// Widget "prochain Pokémon" (mode "Dans l'ordre" / Facile, ou Custom avec
+// l'option activée) : montre le(s) type(s) et la première lettre du prochain
+// Pokémon non trouvé, sans afficher la grille ni son nom complet.
+function renderNextHint() {
+  if (!quizShowNextHint) {
+    quizNextHintEl.hidden = true;
+    return;
+  }
+
+  const next = quizRoster().find((p) => !quizFound.has(p.id));
+  if (!next) {
+    quizNextHintEl.hidden = true;
+    return;
+  }
+
+  const name = pokemonName(next);
+  const revealed = name.slice(0, 1);
+  const hidden = "?".repeat(Math.max(1, name.length - 1));
+  quizNextHintEl.hidden = false;
+  quizNextHintEl.innerHTML = `
+    <span class="quiz-next-hint-label">${t("quiz.nextHintLabel")}</span>
+    ${renderTypeBadges(next)}
+    <span class="quiz-next-hint-letter"><span class="hint-revealed">${revealed}</span>${hidden}</span>
+  `;
 }
 
 function renderQuizPlaying() {
@@ -420,17 +471,19 @@ function startQuiz() {
   justFoundId = null;
   quizFindLog = [];
   quizWrongGuessCount = 0;
-  const minutes = selectedMinutes();
-  quizMinutesUsed = minutes;
+
+  const settings = effectiveQuizSettings();
+  quizMinutesUsed = settings.minutes;
   quizStartedAt = Date.now();
   quizEndedByTimeout = false;
-  quizDeadline = minutes > 0 ? quizStartedAt + minutes * 60000 : null;
-  quizShowTypes = quizOptTypesEl.checked;
-  quizShowGrid = quizOptGridEl.checked;
-  quizShowHints = quizOptHintsEl.checked;
-  quizHardcore = quizOptHardcoreEl.checked;
-  quizSequential = quizOptSequentialEl.checked;
-  quizPermadeath = quizOptPermadeathEl.checked;
+  quizDeadline = settings.minutes > 0 ? quizStartedAt + settings.minutes * 60000 : null;
+  quizShowTypes = settings.types;
+  quizShowGrid = settings.grid;
+  quizShowHints = settings.hints;
+  quizShowNextHint = settings.nextHint;
+  quizHardcore = settings.hardcore;
+  quizSequential = settings.sequential;
+  quizPermadeath = settings.permadeath;
   quizGameOverByMistake = false;
   quizPhase = "playing";
   setQuizNavLock(true);
@@ -447,6 +500,7 @@ function startQuiz() {
   quizInputEl.value = "";
   updateClearButtonVisibility();
   if (quizShowGrid) renderQuizPlaying();
+  renderNextHint();
   updateQuizProgress();
   updateStickyOffsets();
   quizInputEl.focus();
@@ -464,10 +518,15 @@ function endQuiz() {
   renderRecap();
 
   // Succès de génération : évalués dès que tous les Pokémon du roster sont
-  // trouvés (complétion, temps, Hardcore, preset utilisé).
+  // trouvés (complétion, temps, Hardcore, niveau de difficulté nommé utilisé
+  // — jamais en mode Custom, même si ses réglages reproduisent un niveau).
   const completedGen = quizFound.size === quizRoster().length;
   const newlyEarned = completedGen
-    ? checkAchievements(quizGeneration, { elapsedMs: quizElapsedMs, hardcore: quizHardcore, preset: quizPreset })
+    ? checkAchievements(quizGeneration, {
+        elapsedMs: quizElapsedMs,
+        hardcore: quizHardcore,
+        preset: quizMode === "custom" ? null : quizDifficulty,
+      })
     : [];
 
   if (newlyEarned.length > 0) {
@@ -500,84 +559,99 @@ quizTimeOptionBtns.forEach((btn) => {
   });
 });
 
-// Les réglages détaillés restent toujours visibles (même hors "Custom"), pour
-// que l'on voie ce que chaque preset applique ; ils ne sont éditables qu'en
-// "Custom". Les aides "types" et "indice" n'ont en plus de sens que si la
-// grille (qui les affiche) est elle-même activée.
-function updateCustomFieldsState() {
-  const isCustom = quizPreset === "custom";
+// Dans le panneau Custom, "types" et "indice première lettre" n'ont de sens
+// que si la grille (qui les affiche) est elle-même activée.
+function syncGridDependentToggles() {
   const gridOn = quizOptGridEl.checked;
-
-  quizTimeOptionBtns.forEach((btn) => {
-    btn.disabled = !isCustom;
-  });
-  quizOptGridEl.disabled = !isCustom;
-  quizOptHardcoreEl.disabled = !isCustom;
-  quizOptSequentialEl.disabled = !isCustom;
-  quizOptPermadeathEl.disabled = !isCustom;
-  quizOptTypesEl.disabled = !isCustom || !gridOn;
-  quizOptHintsEl.disabled = !isCustom || !gridOn;
-
-  if (isCustom && !gridOn) {
+  quizOptTypesEl.disabled = !gridOn;
+  quizOptHintsEl.disabled = !gridOn;
+  if (!gridOn) {
     quizOptTypesEl.checked = false;
     quizOptHintsEl.checked = false;
   }
 }
 
-quizOptGridEl.addEventListener("change", updateCustomFieldsState);
+quizOptGridEl.addEventListener("change", syncGridDependentToggles);
 
-// Applique un preset (temps + aides + tolérance orthographique) en un clic ;
-// pour "Custom", laisse les valeurs actuelles telles quelles (pratique pour
-// partir d'un preset et l'ajuster) et se contente de les rendre éditables.
-function applyPreset(presetKey) {
-  quizPreset = presetKey;
-  quizPresetBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.preset === presetKey));
+// Sélectionne le niveau de difficulté courant (parmi les 4 du mode "fill" ou
+// "ordered") ; sans effet sur l'état de jeu tant que le mode reste "custom".
+function applyDifficulty(difficulty) {
+  quizDifficulty = difficulty;
+  quizDifficultyBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.difficulty === difficulty));
+}
 
-  if (presetKey !== "custom") {
-    const preset = QUIZ_PRESETS[presetKey];
-    quizTimeOptionBtns.forEach((btn) => {
-      btn.classList.toggle("active", Number(btn.dataset.minutes) === preset.minutes);
-    });
-    quizOptGridEl.checked = preset.grid;
-    quizOptTypesEl.checked = preset.types;
-    quizOptHintsEl.checked = preset.hints;
-    quizOptHardcoreEl.checked = preset.hardcore;
-    quizOptSequentialEl.checked = preset.sequential;
-    quizOptPermadeathEl.checked = preset.permadeath;
+// Bascule entre les 3 modes de jeu : affiche la bonne rangée de difficultés
+// (4 niveaux, propres à chaque mode) ou le panneau Custom complet.
+function applyMode(mode) {
+  quizMode = mode;
+  quizModeBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
+  quizDifficultyFillEl.hidden = mode !== "fill";
+  quizDifficultyOrderedEl.hidden = mode !== "ordered";
+  quizCustomOptionsEl.hidden = mode !== "custom";
+}
+
+quizModeBtns.forEach((btn) => {
+  btn.addEventListener("click", () => applyMode(btn.dataset.mode));
+});
+quizDifficultyBtns.forEach((btn) => {
+  btn.addEventListener("click", () => applyDifficulty(btn.dataset.difficulty));
+});
+
+applyMode(quizMode);
+applyDifficulty(quizDifficulty);
+syncGridDependentToggles();
+
+// Réglages effectifs de la partie à lancer : ceux du niveau de difficulté du
+// mode choisi, ou la lecture directe des champs du panneau Custom.
+function effectiveQuizSettings() {
+  if (quizMode === "custom") {
+    return {
+      minutes: selectedMinutes(),
+      grid: quizOptGridEl.checked,
+      types: quizOptTypesEl.checked,
+      hints: quizOptHintsEl.checked,
+      nextHint: quizOptNextHintEl.checked,
+      hardcore: quizOptHardcoreEl.checked,
+      sequential: quizOptSequentialEl.checked,
+      permadeath: quizOptPermadeathEl.checked,
+    };
   }
 
-  updateCustomFieldsState();
-}
-
-// Devine si la combinaison de réglages courante correspond à l'un des 4
-// presets (ex: après restauration d'une partie partagée), sinon "custom".
-function detectPresetFromCurrentOptions() {
-  const current = {
-    minutes: selectedMinutes(),
-    grid: quizOptGridEl.checked,
-    types: quizOptTypesEl.checked,
-    hints: quizOptHintsEl.checked,
-    hardcore: quizOptHardcoreEl.checked,
-    sequential: quizOptSequentialEl.checked,
-    permadeath: quizOptPermadeathEl.checked,
+  const modeDef = GAME_MODES[quizMode];
+  const diff = modeDef.difficulties[quizDifficulty];
+  return {
+    minutes: modeDef.minutes,
+    sequential: modeDef.sequential,
+    grid: diff.grid,
+    types: diff.types,
+    hints: diff.hints,
+    nextHint: diff.nextHint,
+    hardcore: diff.hardcore,
+    permadeath: diff.permadeath,
   };
-  const match = Object.entries(QUIZ_PRESETS).find(
-    ([, preset]) =>
-      preset.minutes === current.minutes &&
-      preset.grid === current.grid &&
-      preset.types === current.types &&
-      preset.hints === current.hints &&
-      preset.hardcore === current.hardcore &&
-      preset.sequential === current.sequential &&
-      preset.permadeath === current.permadeath
-  );
-  return match ? match[0] : "custom";
 }
 
-quizPresetBtns.forEach((btn) => {
-  btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
-});
-applyPreset(quizPreset);
+// Devine (mode, difficulté) à partir d'une combinaison de réglages bruts (ex:
+// après restauration d'une partie partagée), ou null si aucun des 8 niveaux
+// nommés ne correspond exactement (repli sur "Custom").
+function detectModeAndDifficulty(settings) {
+  for (const [mode, modeDef] of Object.entries(GAME_MODES)) {
+    if (modeDef.minutes !== settings.minutes || modeDef.sequential !== settings.sequential) continue;
+    for (const [difficulty, diff] of Object.entries(modeDef.difficulties)) {
+      if (
+        diff.grid === settings.grid &&
+        diff.types === settings.types &&
+        diff.hints === settings.hints &&
+        diff.nextHint === settings.nextHint &&
+        diff.hardcore === settings.hardcore &&
+        diff.permadeath === settings.permadeath
+      ) {
+        return { mode, difficulty };
+      }
+    }
+  }
+  return null;
+}
 
 function applyGeneration(gen) {
   quizGeneration = gen;
@@ -673,6 +747,7 @@ quizFormEl.addEventListener("submit", (event) => {
     } else {
       addFoundChip(match);
     }
+    renderNextHint();
     updateQuizProgress();
     quizInputEl.value = "";
     updateClearButtonVisibility();
@@ -734,6 +809,7 @@ function buildQuizShareUrl() {
   params.set("hardcore", quizHardcore ? "1" : "0");
   params.set("sequential", quizSequential ? "1" : "0");
   params.set("permadeath", quizPermadeath ? "1" : "0");
+  params.set("nexthint", quizShowNextHint ? "1" : "0");
 
   const url = new URL(location.href);
   url.search = params.toString();
@@ -912,24 +988,38 @@ function applySharedQuizSettings(params) {
   const gen = Number(params.get("gen") ?? 1);
   applyGeneration(GENERATIONS.includes(gen) ? gen : 1);
 
-  const minutes = params.get("minutes");
-  quizTimeOptionBtns.forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.minutes === minutes);
-  });
-  quizOptTypesEl.checked = params.get("types") === "1";
-  quizOptGridEl.checked = params.get("grid") === "1";
-  quizOptHintsEl.checked = params.get("hints") === "1";
-  quizOptHardcoreEl.checked = params.get("hardcore") === "1";
-  quizOptSequentialEl.checked = params.get("sequential") === "1";
-  quizOptPermadeathEl.checked = params.get("permadeath") === "1";
+  const settings = {
+    minutes: Number(params.get("minutes") ?? 0),
+    types: params.get("types") === "1",
+    grid: params.get("grid") === "1",
+    hints: params.get("hints") === "1",
+    nextHint: params.get("nexthint") === "1",
+    hardcore: params.get("hardcore") === "1",
+    sequential: params.get("sequential") === "1",
+    permadeath: params.get("permadeath") === "1",
+  };
 
-  // Sélectionne le preset correspondant s'il y en a un, sinon bascule sur
-  // "Custom" pour rendre éditables les réglages détaillés restaurés depuis
-  // le lien (ils restent visibles dans tous les cas).
-  const detected = detectPresetFromCurrentOptions();
-  quizPreset = detected;
-  quizPresetBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.preset === detected));
-  updateCustomFieldsState();
+  // Renseigne le panneau Custom dans tous les cas : c'est lui qui sera utilisé
+  // si aucun des 8 niveaux nommés ne correspond exactement à ces réglages.
+  quizTimeOptionBtns.forEach((btn) => {
+    btn.classList.toggle("active", Number(btn.dataset.minutes) === settings.minutes);
+  });
+  quizOptTypesEl.checked = settings.types;
+  quizOptGridEl.checked = settings.grid;
+  quizOptHintsEl.checked = settings.hints;
+  quizOptNextHintEl.checked = settings.nextHint;
+  quizOptHardcoreEl.checked = settings.hardcore;
+  quizOptSequentialEl.checked = settings.sequential;
+  quizOptPermadeathEl.checked = settings.permadeath;
+  syncGridDependentToggles();
+
+  const detected = detectModeAndDifficulty(settings);
+  if (detected) {
+    applyMode(detected.mode);
+    applyDifficulty(detected.difficulty);
+  } else {
+    applyMode("custom");
+  }
 }
 
 // Commandes de debug (à taper dans la console), namespacées sous `debug`.

@@ -46,18 +46,30 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
 - Confettis quand une génération est complétée à 100%.
 
 ### Mode Quiz
-- **Configuration** : génération, presets de difficulté (Facile / Normal /
-  Difficile / Très difficile / Custom), temps imparti, aides (grille avec
-  numéros, types affichés, indice première lettre), mode Hardcore
-  (orthographe exacte), mode "Ordre croissant" (deviner dans l'ordre du
-  Pokédex), mode "Un seul essai" / permadeath (la première réponse invalide
-  met fin à la partie immédiatement — combinable avec "Ordre croissant" pour
-  un run façon "tous les Pokémon dans l'ordre, une erreur et c'est terminé").
-- Les réglages détaillés (temps, aides, ordre, orthographe) sont **toujours
-  visibles**, même hors preset "Custom" — ils sont alors grisés/désactivés et
-  affichent juste la valeur que le preset appliquerait. Seul "Custom" les
-  rend éditables. (Décision : éviter qu'un preset masque l'info "à quoi
-  ressemblent mes réglages actuels".)
+- **Configuration** : génération, puis **3 modes de jeu**, chacun avec 4
+  niveaux de difficulté (Facile/Normal/Difficile/Très difficile) sauf Custom :
+  - **"📖 Remplir le Pokédex"** (`mode: "fill"`) : ordre libre, mort subite
+    désactivée, temps infini. Facile = toutes les aides (grille+types+lettre) ;
+    Normal = grille seule ; Difficile = aucune aide ; Très difficile = aucune
+    aide + orthographe exacte (Hardcore).
+  - **"🔢 Dans l'ordre"** (`mode: "ordered"`) : ordre croissant du Pokédex
+    forcé, temps infini. Facile = pas de grille mais un widget affiche le
+    type + la 1ère lettre du **prochain** Pokémon à trouver (`quizShowNextHint`,
+    voir `renderNextHint()`) ; Normal = aucune aide ; Difficile = aucune aide +
+    mort subite (1 erreur = Game Over) ; Très difficile = aucune aide + mort
+    subite + orthographe exacte.
+  - **"🛠️ Custom"** : panneau manuel complet (temps, aides, indice sur le
+    prochain, ordre croissant, mort subite, orthographe exacte), affiché
+    uniquement dans ce mode (pas de preview désactivée comme avant — plus
+    compact). Descriptions en tooltips (`title`/`data-i18n-title`) plutôt
+    qu'en texte toujours visible.
+  - Table des 2 modes nommés × 4 difficultés dans `GAME_MODES` (`quiz.js`) ;
+    `effectiveQuizSettings()` calcule les réglages réels à appliquer selon le
+    mode (table ou lecture directe du panneau Custom) ; `detectModeAndDifficulty()`
+    fait l'inverse (utilisé pour restaurer un lien de partage).
+  - Les succès liés à la difficulté (`easy`/`normal`/`hard`) ne sont attribués
+    que via un mode nommé, jamais en Custom, même si ses réglages reproduisent
+    exactement un niveau (comportement hérité de l'ancien système de presets).
 - **Cartes du Quiz** : taille fixe par palier (`small`/`medium`/`large`, cf.
   réglage "Taille des cartes"), sprite + nom en haut, badges de types en bas
   à gauche, numéro flottant en haut à droite. Animation de révélation
@@ -243,3 +255,10 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     tremblement de l'input au rejeu, fix bordure bleu+rouge, système de
     notifications toast (Shiny/succès), séparation Rejouer/Configuration,
     étoile Shiny repositionnée sur la carte (pas l'image).
+11. Ajout de `debug.gameOver()`, `debug.toast()`, `debug.resetAll()`, et
+    remplacement de `debug.unlockShiny` par `debug.shiny()` (force le prochain
+    tirage + notif).
+12. Refonte complète de la pré-configuration du Quiz : 2 modes nommés
+    ("Remplir le Pokédex" / "Dans l'ordre") × 4 difficultés + mode Custom
+    redessiné compact avec tooltips, nouveau widget "indice sur le prochain"
+    (type + 1ère lettre) pour le mode "Dans l'ordre"/Facile.

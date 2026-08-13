@@ -142,7 +142,6 @@ function setQuizNavLock(locked) {
 const sharedQuizParams = new URLSearchParams(location.search);
 if (sharedQuizParams.has("minutes")) {
   applySharedQuizSettings(sharedQuizParams);
-  syncGridDependentOptions();
   goToMode("quiz");
   history.replaceState(null, "", location.pathname);
 }
