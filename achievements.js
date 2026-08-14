@@ -1,6 +1,7 @@
-// Succès : 11 par génération, obtenus en terminant le Quiz de différentes
+// Succès : 13 par génération, obtenus en terminant le Quiz de différentes
 // façons (au moins une fois, sous un certain temps, en Hardcore, avec tel
-// niveau de difficulté, en mode Chronologique, ou en Un seul essai).
+// niveau de difficulté, en mode Chronologique/Numéro/Suite, ou en Un seul
+// essai).
 // Persisté comme les Shiny (contrairement au reste du Quiz), peu importe
 // combien de fois on rejoue.
 const ACHIEVEMENTS_KEY = "pokelist-achievements";
@@ -17,6 +18,8 @@ const ACHIEVEMENTS = [
   { key: "veryHard", icon: "💀" },
   { key: "ordered", icon: "🔢" },
   { key: "permadeath", icon: "☠️" },
+  { key: "number", icon: "#️⃣" },
+  { key: "sequence", icon: "🧩" },
 ];
 
 function loadAchievements() {
@@ -68,6 +71,8 @@ function checkAchievements(gen, { elapsedMs, hardcore, preset, mode, permadeath 
   if (preset === "hard") tryAward("hard");
   if (preset === "veryHard") tryAward("veryHard");
   if (mode === "ordered") tryAward("ordered");
+  if (mode === "number") tryAward("number");
+  if (mode === "sequence") tryAward("sequence");
   if (permadeath) tryAward("permadeath");
 
   return newly;

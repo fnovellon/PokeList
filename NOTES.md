@@ -47,18 +47,44 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
 - Confettis quand une génération est complétée à 100%.
 
 ### Mode Quiz
-- **Configuration** : génération, puis **3 modes de jeu**, chacun avec 4
+- **Configuration** : génération, puis **5 modes de jeu**, chacun avec 4
   niveaux de difficulté (Facile/Normal/Difficile/Très difficile) sauf Custom :
-  - **"📖 Remplir le Pokédex"** (`mode: "fill"`) : ordre libre, mort subite
+  - **"📖 Classique"** (`mode: "fill"`) : ordre libre, mort subite
     désactivée, temps infini. Facile = toutes les aides (grille+types+lettre) ;
     Normal = grille seule ; Difficile = aucune aide ; Très difficile = aucune
     aide + orthographe exacte (Hardcore).
-  - **"🔢 Dans l'ordre"** (`mode: "ordered"`) : ordre croissant du Pokédex
+  - **"🔢 Chronologique"** (`mode: "ordered"`) : ordre croissant du Pokédex
     forcé, temps infini. Facile = pas de grille mais un widget affiche le
     type + la 1ère lettre du **prochain** Pokémon à trouver (`quizShowNextHint`,
     voir `renderNextHint()`) ; Normal = aucune aide ; Difficile = aucune aide +
     mort subite (1 erreur = Game Over) ; Très difficile = aucune aide + mort
     subite + orthographe exacte.
+  - **"#️⃣ Numéro"** (`mode: "number"`) : une seule cible aléatoire à la fois
+    parmi les Pokémon non trouvés (`quizCurrentTarget`, tirée par
+    `pickNumberTarget()`), affichée dans un widget dédié (`#quiz-target-card`
+    / `renderQuizTarget()`) qui montre uniquement son numéro — jamais de
+    grille. Facile = type + 1ère lettre en aide (réutilise les réglages
+    `quizShowTypes`/`quizShowHints` existants, juste appliqués à cette cible
+    au lieu de la grille) ; Normal = aucune aide ; Difficile = aucune aide +
+    mort subite ; Très difficile = aucune aide + mort subite + orthographe
+    exacte. Pas de notion d'ordre (`sequential: false`) : une mauvaise
+    réponse tombe toujours dans le feedback générique "faux", jamais
+    "hors d'ordre".
+  - **"🧩 Suite"** (`mode: "sequence"`) : réutilise **entièrement** la
+    mécanique séquentielle de "Chronologique" (`sequential: true`, même
+    "prochain non trouvé = plus petit numéro"), avec un seul ajout : au
+    lancement, les `context` premiers Pokémon du roster sont donnés
+    gratuitement (`quizSeqContext`, ajoutés à `quizFound` sans passer par
+    `recordPokemonFound`/`quizFindLog` — ce n'est pas une trouvaille), et un
+    widget (`#quiz-seq-strip` / `renderSeqStrip()`) affiche en continu une
+    fenêtre glissante : les `context` derniers Pokémon confirmés (donnés ou
+    devinés) + la prochaine cible à deviner. Comme le roster est trié par
+    numéro, `quizFound.size` sert directement d'index dans le roster pour
+    calculer cette fenêtre — aucun état supplémentaire nécessaire. Le
+    paramètre de difficulté est `context` : Facile = 3 (+ aides sur la
+    cible) ; Normal = 2 ; Difficile = 1 + mort subite ; Très difficile = 0
+    (aucun repère donné, identique en pratique à "Chronologique"/Très
+    difficile) + orthographe exacte + mort subite.
   - **"🛠️ Custom"** : panneau manuel complet (temps, aides, indice sur le
     prochain, ordre croissant, mort subite, orthographe exacte). Le panneau
     reste **toujours visible** (grisé + pré-rempli avec l'aperçu du niveau
@@ -68,11 +94,21 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
     `title` natif, jugé trop lent) au survol d'une icône "(?)" dédiée
     (`.info-icon`) — placée en dehors du `<label>` pour ne pas déclencher
     l'interrupteur au clic. Uniquement sur les réglages Custom, pas sur les
-    boutons de difficulté. Voir "Tooltip custom" plus bas.
-  - Table des 2 modes nommés × 4 difficultés dans `GAME_MODES` (`quiz.js`) ;
+    boutons de difficulté. Voir "Tooltip custom" plus bas. "Numéro" et
+    "Suite" ne sont **pas** exposés dans Custom (contrairement à
+    Classique/Chronologique) : ce sont des modes nommés fermés, leurs
+    mécaniques (cible aléatoire, fenêtre glissante) n'ont pas d'équivalent
+    manuel dans le panneau actuel.
+  - Table des 4 modes nommés × 4 difficultés dans `GAME_MODES` (`quiz.js`) ;
     `effectiveQuizSettings()` calcule les réglages réels à appliquer selon le
     mode (table ou lecture directe du panneau Custom) ; `detectModeAndDifficulty()`
-    fait l'inverse (utilisé pour restaurer un lien de partage).
+    fait l'inverse (repli utilisé uniquement pour les anciens liens de
+    partage sans `mode`/`difficulty` explicites, voir "Partage" plus bas).
+  - `quizActiveCandidates(unfound)` centralise "quelle(s) sont la/les seule(s)
+    bonne(s) réponse(s) à l'instant T" (cible aléatoire en "Numéro", prochain
+    non trouvé en mode séquentiel, sinon n'importe quel non-trouvé) : utilisée
+    à la fois par le handler `submit` et par `scheduleAutoSubmitCheck` (STT),
+    pour ne jamais diverger entre les deux chemins de validation.
   - Les succès liés à la difficulté (`easy`/`normal`/`hard`) ne sont attribués
     que via un mode nommé, jamais en Custom, même si ses réglages reproduisent
     exactement un niveau (comportement hérité de l'ancien système de presets).
@@ -106,8 +142,13 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   plateforme (`navigator.share` volontairement pas utilisé). Image PNG
   générée en Canvas séparément (aucune dépendance externe). L'URL de partage
   encode la config exacte de la partie (génération, temps, aides, hardcore,
-  séquentiel, permadeath) pour que la personne qui l'ouvre parte sur un pied
-  d'égalité.
+  séquentiel, permadeath, `context`) **et** `mode`/`difficulty` explicitement
+  depuis l'ajout des modes "Numéro"/"Suite" : avec 4 modes nommés, certains
+  niveaux partagent exactement la même "forme" de réglages bruts (ex:
+  Classique/Difficile et Numéro/Normal), donc la déduction seule
+  (`detectModeAndDifficulty`) deviendrait ambiguë. `applySharedQuizSettings`
+  lit `mode`/`difficulty` en priorité et ne retombe sur la déduction que pour
+  les anciens liens qui ne les ont pas.
 - **Stats de fin de partie** : précision, rythme (Pokémon/min), trouvaille la
   plus rapide/lente, premier/dernier trouvé — seulement si au moins un
   Pokémon a été trouvé.
@@ -116,7 +157,11 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   setup) ; "⚙️ Configuration" ramène à l'écran de réglages pour changer la
   config ; "🏠 Accueil" fait la même chose que "Configuration" (redondant en
   l'état, gardé tel quel car pas demandé de le changer).
-- Commandes de debug dans la console : `debug.fillQuiz()`,
+- Commandes de debug dans la console : `debug.fillQuiz()` (retient un seul
+  Pokémon caché — en mode séquentiel, forcément le tout dernier du roster,
+  puisqu'on ne peut pas "sauter" un Pokémon au milieu ; sinon n'importe quel
+  non-trouvé, qui peut différer de `roster[0]` si celui-ci est déjà acquis,
+  ex: "Suite" avec un contexte de départ non nul),
   `debug.unlockAchievement(gen, key)`,
   `debug.gameOver()` (simule une défaite "Un seul essai" sans y jouer),
   `debug.toast(tone)` (tone: "shiny" | "achv" | rien, aperçu du rendu),
@@ -150,13 +195,13 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   complétion à 100%, ou abandon).
 
 ### Succès (`achievements.js`)
-- 11 par génération : terminer le Quiz (une fois), sous 30/15/10 min, en
+- 13 par génération : terminer le Quiz (une fois), sous 30/15/10 min, en
   Hardcore, avec une difficulté donnée (Facile/Normal/Difficile/**Très
-  difficile**), en mode **Chronologique**, ou en **Un seul essai** (sans
-  perdre). Les 3 derniers ont été ajoutés après coup pour combler des trous
-  du système d'origine (aucun succès pour "Très difficile", et les modes
-  Chronologique/permadeath n'avaient jamais eu de succès dédié bien que plus
-  difficiles que les presets existants).
+  difficile**), en mode **Chronologique**, **Numéro**, ou **Suite**, ou en
+  **Un seul essai** (sans perdre). Les icônes des succès "mode" reprennent
+  toujours celle du bouton de mode correspondant (ex: 🔢 pour Chronologique,
+  #️⃣ pour Numéro, 🧩 pour Suite) — convention déjà en place avant l'ajout de
+  ces deux derniers.
 - `checkAchievements(gen, { elapsedMs, hardcore, preset, mode, permadeath })`
   — `preset` reste `null` en mode Custom (aucun succès de difficulté nommée
   n'est jamais attribué en Custom, même si ses réglages reproduisent
@@ -166,10 +211,10 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
 
 ### Stats entre parties (`stats.js`)
 - Clé `pokelist-quiz-stats`. Découpées par **mode nommé × difficulté**
-  uniquement (8 compartiments : Classique/Chronologique × 4 niveaux),
-  agrégées toutes générations confondues (non demandé de les scinder par
-  génération). Custom n'a qu'un compteur de parties jouées — pas de détail,
-  ses réglages étant arbitraires.
+  uniquement (16 compartiments : Classique/Chronologique/Numéro/Suite × 4
+  niveaux), agrégées toutes générations confondues (non demandé de les
+  scinder par génération). Custom n'a qu'un compteur de parties jouées — pas
+  de détail, ses réglages étant arbitraires.
 - Par compartiment : `gamesPlayed`, `completions`, `bestTimeMs` (seulement
   sur les parties complétées à 100%, `null` tant qu'aucune ne l'a été),
   `bestPercent`, `totalFound` (cumul de captures toutes parties confondues
@@ -365,3 +410,9 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
 19. Validation automatique passée derrière un réglage global "🎤 Validation
     STT" (panneau Réglages, désactivé par défaut) au lieu d'être toujours
     active.
+20. Deux nouveaux modes de Quiz : "#️⃣ Numéro" (une seule cible aléatoire à
+    la fois, juste son numéro + aides optionnelles) et "🧩 Suite" (fenêtre
+    glissante montrant les derniers Pokémon confirmés + la prochaine cible à
+    deviner, réutilise la mécanique séquentielle existante). Lien de partage
+    étendu pour encoder `mode`/`difficulty` explicitement, la déduction par
+    réglages seule devenant ambiguë avec 4 modes nommés.

@@ -4,9 +4,15 @@ const quizRecapEl = document.getElementById("quiz-recap");
 
 const quizGenBtns = document.querySelectorAll("#quiz-gen-options .settings-option");
 const quizModeBtns = document.querySelectorAll("#quiz-mode-options .settings-option");
-const quizDifficultyFillEl = document.getElementById("quiz-difficulty-fill");
-const quizDifficultyOrderedEl = document.getElementById("quiz-difficulty-ordered");
-const quizDifficultyBtns = document.querySelectorAll("#quiz-difficulty-fill .settings-option, #quiz-difficulty-ordered .settings-option");
+const quizDifficultySections = {
+  fill: document.getElementById("quiz-difficulty-fill"),
+  ordered: document.getElementById("quiz-difficulty-ordered"),
+  number: document.getElementById("quiz-difficulty-number"),
+  sequence: document.getElementById("quiz-difficulty-sequence"),
+};
+const quizDifficultyBtns = document.querySelectorAll(
+  "#quiz-difficulty-fill .settings-option, #quiz-difficulty-ordered .settings-option, #quiz-difficulty-number .settings-option, #quiz-difficulty-sequence .settings-option"
+);
 const quizTimeOptionBtns = document.querySelectorAll("#quiz-time-options .settings-option");
 const quizOptTypesEl = document.getElementById("quiz-opt-types");
 const quizOptGridEl = document.getElementById("quiz-opt-grid");
@@ -17,11 +23,19 @@ const quizOptSequentialEl = document.getElementById("quiz-opt-sequential");
 const quizOptPermadeathEl = document.getElementById("quiz-opt-permadeath");
 const quizStartBtn = document.getElementById("quiz-start-btn");
 const quizNextHintEl = document.getElementById("quiz-next-hint");
+const quizTargetCardEl = document.getElementById("quiz-target-card");
+const quizSeqStripEl = document.getElementById("quiz-seq-strip");
 
-// Les 2 modes nommés ("fill" = remplir le Pokédex dans l'ordre voulu,
-// "ordered" = dans l'ordre du Pokédex) fixent temps + aides + règles en un
-// clic via leurs 4 niveaux de difficulté ; "Custom" (non listé ici) laisse
-// tout éditable manuellement dans #quiz-custom-options.
+// Les 4 modes nommés fixent temps + aides + règles en un clic via leurs 4
+// niveaux de difficulté ; "Custom" (non listé ici) laisse tout éditable
+// manuellement dans #quiz-custom-options.
+// - "fill" : remplir le Pokédex dans l'ordre voulu.
+// - "ordered" : dans l'ordre du Pokédex.
+// - "number" : une seule cible aléatoire à la fois, on ne voit que son
+//   numéro (+ aides éventuelles). Pas de grille, pas d'ordre imposé.
+// - "sequence" : comme "ordered" (même mécanique "prochain non trouvé"),
+//   mais avec un nombre de Pokémon donnés gratuitement au départ (`context`)
+//   et une fenêtre glissante qui les montre en continu comme repère.
 const GAME_MODES = {
   fill: {
     minutes: 0,
@@ -41,6 +55,26 @@ const GAME_MODES = {
       normal: { grid: false, types: false, hints: false, hardcore: false, permadeath: false, nextHint: false },
       hard: { grid: false, types: false, hints: false, hardcore: false, permadeath: true, nextHint: false },
       veryHard: { grid: false, types: false, hints: false, hardcore: true, permadeath: true, nextHint: false },
+    },
+  },
+  number: {
+    minutes: 0,
+    sequential: false,
+    difficulties: {
+      easy: { grid: false, types: true, hints: true, hardcore: false, permadeath: false, nextHint: false },
+      normal: { grid: false, types: false, hints: false, hardcore: false, permadeath: false, nextHint: false },
+      hard: { grid: false, types: false, hints: false, hardcore: false, permadeath: true, nextHint: false },
+      veryHard: { grid: false, types: false, hints: false, hardcore: true, permadeath: true, nextHint: false },
+    },
+  },
+  sequence: {
+    minutes: 0,
+    sequential: true,
+    difficulties: {
+      easy: { grid: false, types: true, hints: true, hardcore: false, permadeath: false, nextHint: false, context: 3 },
+      normal: { grid: false, types: false, hints: false, hardcore: false, permadeath: false, nextHint: false, context: 2 },
+      hard: { grid: false, types: false, hints: false, hardcore: false, permadeath: true, nextHint: false, context: 1 },
+      veryHard: { grid: false, types: false, hints: false, hardcore: true, permadeath: true, nextHint: false, context: 0 },
     },
   },
 };
@@ -82,8 +116,10 @@ let quizHardcore = false;
 let quizSequential = false;
 let quizPermadeath = false;
 let quizGameOverByMistake = false;
-let quizMode = "fill"; // "fill" | "ordered" | "custom"
+let quizMode = "fill"; // "fill" | "ordered" | "number" | "sequence" | "custom"
 let quizDifficulty = "easy"; // "easy" | "normal" | "hard" | "veryHard" ; sans effet si quizMode === "custom"
+let quizCurrentTarget = null; // mode "number" : Pokémon actuellement à deviner
+let quizSeqContext = 0; // mode "sequence" : nombre de Pokémon montrés comme repère
 let quizGeneration = 1;
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
@@ -149,6 +185,20 @@ function findClosestGuessMatch(rawGuess, candidates) {
   return best;
 }
 
+// Seule(s) bonne(s) réponse(s) valable(s) à l'instant T, selon le mode :
+// - "number" : uniquement la cible aléatoire active (quizCurrentTarget).
+// - Ordre imposé ("ordered"/"sequence", ou Custom + "Ordre croissant") :
+//   uniquement le prochain non trouvé (plus petit numéro du roster).
+// - Sinon (fill/Custom libre) : n'importe quel Pokémon non trouvé.
+// Utilisée à la fois par le handler `submit` et par la validation
+// automatique (scheduleAutoSubmitCheck), pour ne jamais diverger entre les
+// deux chemins de validation.
+function quizActiveCandidates(unfound) {
+  if (quizMode === "number") return quizCurrentTarget ? [quizCurrentTarget] : [];
+  if (quizSequential) return unfound[0] ? [unfound[0]] : [];
+  return unfound;
+}
+
 function showQuizFeedback(message, tone) {
   quizFeedbackEl.textContent = message;
   quizFeedbackEl.className = "quiz-feedback";
@@ -193,6 +243,75 @@ function renderNextHint() {
     <span class="quiz-next-hint-label">${t("quiz.nextHintLabel")}</span>
     ${renderTypeBadges(next)}
     <span class="quiz-next-hint-letter"><span class="hint-revealed">${revealed}</span>${hidden}</span>
+  `;
+}
+
+// Mode "Numéro" : tire une cible aléatoire parmi les Pokémon non trouvés.
+// Appelée au lancement de la partie et après chaque bonne réponse.
+function pickNumberTarget() {
+  const unfound = quizRoster().filter((p) => !quizFound.has(p.id));
+  quizCurrentTarget = unfound.length > 0 ? unfound[Math.floor(Math.random() * unfound.length)] : null;
+}
+
+// Widget mode "Numéro" : affiche uniquement le numéro de la cible active,
+// avec type/première lettre en aide optionnelle (mêmes réglages que la
+// grille des autres modes, appliqués ici à cette seule cible).
+function renderQuizTarget() {
+  if (quizMode !== "number" || !quizCurrentTarget) {
+    quizTargetCardEl.hidden = true;
+    return;
+  }
+
+  quizTargetCardEl.hidden = false;
+  quizTargetCardEl.innerHTML = `
+    <span class="quiz-target-label">${t("quiz.targetLabel")}</span>
+    <span class="quiz-target-number">${formatNumber(quizCurrentTarget.id)}</span>
+    ${typeBadgesHtml(quizCurrentTarget)}
+    ${quizShowHints ? `<span class="quiz-target-letter">${hintedPlaceholder(quizCurrentTarget)}</span>` : ""}
+  `;
+}
+
+// Petite carte pour la fenêtre du mode "Suite" : révélée (confirmée) ou
+// silhouette (prochaine cible à deviner, avec les mêmes aides que le mode
+// "Numéro").
+function seqCardHtml(pokemon, revealed) {
+  const name = pokemonName(pokemon);
+  return `
+    <span class="quiz-seq-card ${revealed ? "quiz-seq-revealed" : "quiz-seq-pending"}">
+      <img
+        class="quiz-seq-sprite"
+        src="${getSpriteUrl(pokemon.id)}"
+        alt="${revealed ? name : t("quiz.altHidden")}"
+        loading="lazy"
+      />
+      <span class="quiz-seq-number">${formatNumber(pokemon.id)}</span>
+      <span class="quiz-seq-name">${
+        revealed ? name : `${typeBadgesHtml(pokemon)}${quizShowHints ? hintedPlaceholder(pokemon) : ""}`
+      }</span>
+    </span>
+  `;
+}
+
+// Widget mode "Suite" : les `quizSeqContext` derniers Pokémon confirmés
+// (donnés au départ ou devinés) suivis de la prochaine cible à deviner.
+// Comme ce mode réutilise la mécanique séquentielle (roster trié par
+// numéro), `quizFound.size` sert directement d'index dans le roster.
+function renderSeqStrip() {
+  if (quizMode !== "sequence") {
+    quizSeqStripEl.hidden = true;
+    return;
+  }
+
+  const roster = quizRoster();
+  const confirmedCount = quizFound.size;
+  const shown = roster.slice(Math.max(0, confirmedCount - quizSeqContext), confirmedCount);
+  const next = roster[confirmedCount];
+
+  quizSeqStripEl.hidden = false;
+  quizSeqStripEl.innerHTML = `
+    ${shown.map((p) => seqCardHtml(p, true)).join("")}
+    ${shown.length > 0 ? '<span class="quiz-seq-arrow">→</span>' : ""}
+    ${next ? seqCardHtml(next, false) : ""}
   `;
 }
 
@@ -482,10 +601,20 @@ function startQuiz() {
   quizHardcore = settings.hardcore;
   quizSequential = settings.sequential;
   quizPermadeath = settings.permadeath;
+  quizSeqContext = settings.context || 0;
   quizGameOverByMistake = false;
   quizPhase = "playing";
   setQuizNavLock(true);
   recordGameStart(quizMode, quizMode === "custom" ? null : quizDifficulty);
+
+  // Mode "Suite" : les `quizSeqContext` premiers Pokémon du roster sont
+  // donnés gratuitement (pas de recordPokemonFound/quizFindLog, ce n'est pas
+  // une trouvaille) pour amorcer la fenêtre de contexte.
+  if (quizMode === "sequence") {
+    quizRoster().slice(0, quizSeqContext).forEach((p) => quizFound.add(p.id));
+  }
+  // Mode "Numéro" : tire la première cible aléatoire de la partie.
+  if (quizMode === "number") pickNumberTarget();
 
   quizSetupEl.hidden = true;
   quizRecapEl.hidden = true;
@@ -493,6 +622,7 @@ function startQuiz() {
   quizListEl.style.display = quizShowGrid ? "" : "none";
   quizFoundChipsEl.style.display = quizShowGrid ? "none" : "";
   quizFoundChipsEl.innerHTML = "";
+  if (!quizShowGrid && quizFound.size > 0) renderQuizFoundChips();
 
   showQuizFeedback("", null);
   quizInputEl.classList.remove("shake");
@@ -500,6 +630,8 @@ function startQuiz() {
   updateClearButtonVisibility();
   if (quizShowGrid) renderQuizPlaying();
   renderNextHint();
+  renderQuizTarget();
+  renderSeqStrip();
   updateQuizProgress();
   updateStickyOffsets();
   quizInputEl.focus();
@@ -617,14 +749,15 @@ function applyDifficulty(difficulty) {
   updateCustomPanelState();
 }
 
-// Bascule entre les 3 modes de jeu : affiche la bonne rangée de difficultés
+// Bascule entre les modes de jeu : affiche la bonne rangée de difficultés
 // (4 niveaux, propres à chaque mode) ; le panneau détaillé reste affiché dans
 // tous les cas (cf. updateCustomPanelState).
 function applyMode(mode) {
   quizMode = mode;
   quizModeBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
-  quizDifficultyFillEl.hidden = mode !== "fill";
-  quizDifficultyOrderedEl.hidden = mode !== "ordered";
+  Object.entries(quizDifficultySections).forEach(([m, el]) => {
+    el.hidden = mode !== m;
+  });
   updateCustomPanelState();
 }
 
@@ -665,12 +798,17 @@ function effectiveQuizSettings() {
     nextHint: diff.nextHint,
     hardcore: diff.hardcore,
     permadeath: diff.permadeath,
+    context: diff.context,
   };
 }
 
-// Devine (mode, difficulté) à partir d'une combinaison de réglages bruts (ex:
-// après restauration d'une partie partagée), ou null si aucun des 8 niveaux
-// nommés ne correspond exactement (repli sur "Custom").
+// Devine (mode, difficulté) à partir d'une combinaison de réglages bruts —
+// repli utilisé uniquement pour les anciens liens de partage qui n'encodent
+// pas encore `mode`/`difficulty` explicitement (voir buildQuizShareUrl) ;
+// retourne null si aucun des niveaux nommés ne correspond exactement
+// (repli sur "Custom"). `context` est absent (undefined) pour fill/ordered
+// mais vaut explicitement 0 pour "sequence"/veryHard : la comparaison
+// stricte évite donc toute collision entre ces deux cas.
 function detectModeAndDifficulty(settings) {
   for (const [mode, modeDef] of Object.entries(GAME_MODES)) {
     if (modeDef.minutes !== settings.minutes || modeDef.sequential !== settings.sequential) continue;
@@ -681,7 +819,8 @@ function detectModeAndDifficulty(settings) {
         diff.hints === settings.hints &&
         diff.nextHint === settings.nextHint &&
         diff.hardcore === settings.hardcore &&
-        diff.permadeath === settings.permadeath
+        diff.permadeath === settings.permadeath &&
+        diff.context === settings.context
       ) {
         return { mode, difficulty };
       }
@@ -763,8 +902,7 @@ function scheduleAutoSubmitCheck() {
 
     const roster = quizRoster();
     const unfound = roster.filter((p) => !quizFound.has(p.id));
-    const nextRequired = quizSequential ? unfound[0] ?? null : null;
-    const candidates = quizSequential ? (nextRequired ? [nextRequired] : []) : unfound;
+    const candidates = quizActiveCandidates(unfound);
     const isExactMatch = candidates.some((p) => guessMatchDistance(guess, p) === 0);
 
     if (isExactMatch) quizFormEl.requestSubmit();
@@ -797,13 +935,13 @@ quizFormEl.addEventListener("submit", (event) => {
 
   const roster = quizRoster();
   const unfound = roster.filter((p) => !quizFound.has(p.id));
-  // En mode "ordre croissant", seul le prochain Pokémon non trouvé (plus
-  // petit numéro de Pokédex) peut être validé : deviner un autre Pokémon
-  // valide mais pas encore "d'actualité" est traité comme hors d'ordre.
+  // En mode "ordre croissant" (Chronologique/Suite), seul le prochain
+  // Pokémon non trouvé (plus petit numéro de Pokédex) peut être validé :
+  // deviner un autre Pokémon valide mais pas encore "d'actualité" est
+  // traité comme hors d'ordre. En mode "Numéro", seule la cible active
+  // compte (voir quizActiveCandidates).
   const nextRequired = quizSequential ? unfound[0] ?? null : null;
-  const match = quizSequential
-    ? findClosestGuessMatch(guess, nextRequired ? [nextRequired] : [])
-    : findClosestGuessMatch(guess, unfound);
+  const match = findClosestGuessMatch(guess, quizActiveCandidates(unfound));
 
   if (match) {
     quizFound.add(match.id);
@@ -818,7 +956,11 @@ quizFormEl.addEventListener("submit", (event) => {
     } else {
       addFoundChip(match);
     }
+    // Mode "Numéro" : une nouvelle cible aléatoire remplace celle trouvée.
+    if (quizMode === "number") pickNumberTarget();
     renderNextHint();
+    renderQuizTarget();
+    renderSeqStrip();
     updateQuizProgress();
     quizInputEl.value = "";
     updateClearButtonVisibility();
@@ -869,7 +1011,11 @@ quizFormEl.addEventListener("submit", (event) => {
 
 // Construit un lien qui reproduit exactement la configuration de cette partie
 // (temps imparti, aides), pour que la personne qui l'ouvre parte sur un pied
-// d'égalité.
+// d'égalité. `mode`/`difficulty` sont encodés explicitement (en plus des
+// réglages bruts, gardés pour le panneau Custom) : avec 4 modes nommés,
+// certains niveaux ont exactement la même "forme" de réglages (ex:
+// Classique/Difficile et Numéro/Normal), la déduction par réglages seule
+// (detectModeAndDifficulty) deviendrait ambiguë.
 function buildQuizShareUrl() {
   const params = new URLSearchParams();
   params.set("gen", String(quizGeneration));
@@ -881,6 +1027,9 @@ function buildQuizShareUrl() {
   params.set("sequential", quizSequential ? "1" : "0");
   params.set("permadeath", quizPermadeath ? "1" : "0");
   params.set("nexthint", quizShowNextHint ? "1" : "0");
+  params.set("context", String(quizSeqContext));
+  params.set("mode", quizMode);
+  if (quizMode !== "custom") params.set("difficulty", quizDifficulty);
 
   const url = new URL(location.href);
   url.search = params.toString();
@@ -1068,10 +1217,14 @@ function applySharedQuizSettings(params) {
     hardcore: params.get("hardcore") === "1",
     sequential: params.get("sequential") === "1",
     permadeath: params.get("permadeath") === "1",
+    // undefined (pas "0") si absent, pour ne pas être pris pour un "context: 0"
+    // explicite lors du repli sur detectModeAndDifficulty (voir plus bas).
+    context: params.has("context") ? Number(params.get("context")) : undefined,
   };
 
   // Renseigne le panneau Custom dans tous les cas : c'est lui qui sera utilisé
-  // si aucun des 8 niveaux nommés ne correspond exactement à ces réglages.
+  // si aucun des niveaux nommés ne correspond (mode "custom" ou lien trop
+  // ancien pour préciser mode/difficulty).
   quizTimeOptionBtns.forEach((btn) => {
     btn.classList.toggle("active", Number(btn.dataset.minutes) === settings.minutes);
   });
@@ -1083,12 +1236,27 @@ function applySharedQuizSettings(params) {
   quizOptSequentialEl.checked = settings.sequential;
   quizOptPermadeathEl.checked = settings.permadeath;
 
-  const detected = detectModeAndDifficulty(settings);
-  if (detected) {
-    applyMode(detected.mode);
-    applyDifficulty(detected.difficulty);
-  } else {
+  // Depuis l'ajout des modes "Numéro"/"Suite", plusieurs niveaux nommés
+  // partagent parfois exactement la même "forme" de réglages bruts (ex:
+  // Classique/Difficile et Numéro/Normal) : le lien encode donc mode et
+  // difficulté explicitement, lus en priorité. Repli sur la déduction par
+  // réglages (detectModeAndDifficulty) uniquement pour les anciens liens
+  // qui n'ont pas ces paramètres.
+  const sharedMode = params.get("mode");
+  const sharedDifficulty = params.get("difficulty");
+  if (sharedMode === "custom") {
     applyMode("custom");
+  } else if (sharedMode && GAME_MODES[sharedMode]?.difficulties[sharedDifficulty]) {
+    applyMode(sharedMode);
+    applyDifficulty(sharedDifficulty);
+  } else {
+    const detected = detectModeAndDifficulty(settings);
+    if (detected) {
+      applyMode(detected.mode);
+      applyDifficulty(detected.difficulty);
+    } else {
+      applyMode("custom");
+    }
   }
 }
 
@@ -1105,7 +1273,13 @@ window.debug.fillQuiz = function () {
   }
 
   const roster = quizRoster();
-  const keepHidden = roster[0]?.id;
+  const stillUnfound = roster.filter((p) => !quizFound.has(p.id));
+  // En mode séquentiel (Chronologique/Suite), impossible de "sauter" un
+  // Pokémon au milieu : seul le tout dernier du roster peut rester retenu.
+  // Sinon (Classique/Numéro/Custom libre), n'importe quel non-trouvé convient
+  // — le premier disponible, qui peut différer de roster[0] si celui-ci est
+  // déjà acquis (ex: Suite avec un contexte de départ non nul).
+  const keepHidden = (quizSequential ? stillUnfound[stillUnfound.length - 1] : stillUnfound[0])?.id;
   roster.forEach((p) => {
     if (p.id === keepHidden || quizFound.has(p.id)) return;
     quizFound.add(p.id);
@@ -1114,7 +1288,15 @@ window.debug.fillQuiz = function () {
     if (!quizShowGrid) addFoundChip(p);
   });
 
+  // Mode "Numéro" : resynchronise la cible active sur le seul Pokémon
+  // restant (elle pointait potentiellement vers un Pokémon qui vient
+  // d'être ajouté directement à quizFound ci-dessus).
+  if (quizMode === "number") pickNumberTarget();
+
   if (quizShowGrid) renderQuizPlaying();
+  renderNextHint();
+  renderQuizTarget();
+  renderSeqStrip();
   updateQuizProgress();
   console.log(`[debug.fillQuiz] ${quizFound.size} / ${roster.length} débloqués (#${keepHidden} exclu).`);
 };

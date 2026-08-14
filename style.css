@@ -538,6 +538,120 @@ main {
   letter-spacing: normal;
 }
 
+/* Mode "Numéro" : une seule cible active à la fois. */
+.quiz-target-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.9rem 0.75rem;
+  margin-bottom: 0.6rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-2) 10%, var(--bg));
+  border: 1px solid var(--accent-2);
+  text-align: center;
+}
+
+.quiz-target-card[hidden] {
+  display: none;
+}
+
+.quiz-target-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.quiz-target-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent-2);
+  line-height: 1;
+}
+
+.quiz-target-letter {
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+}
+
+/* Mode "Suite" : fenêtre glissante (derniers confirmés → prochaine cible). */
+.quiz-seq-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  margin-bottom: 0.6rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-2) 10%, var(--bg));
+  border: 1px solid var(--accent-2);
+}
+
+.quiz-seq-strip[hidden] {
+  display: none;
+}
+
+.quiz-seq-arrow {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.quiz-seq-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 10px;
+  background: var(--bg);
+  min-width: 64px;
+}
+
+.quiz-seq-revealed {
+  border: 1px solid var(--caught-border);
+}
+
+.quiz-seq-pending {
+  border: 1px dashed var(--accent-2);
+}
+
+.quiz-seq-sprite {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.quiz-seq-pending .quiz-seq-sprite {
+  filter: grayscale(1) brightness(0);
+  opacity: 0.45;
+}
+
+.quiz-seq-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.quiz-seq-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quiz-seq-pending .quiz-seq-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  white-space: normal;
+}
+
 #quiz-form {
   padding-bottom: 0.75rem;
 }

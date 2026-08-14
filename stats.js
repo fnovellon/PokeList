@@ -1,7 +1,8 @@
 // Statistiques entre parties : un compteur par (mode nommé × difficulté) —
-// 8 compartiments (Classique/Chronologique × 4 niveaux), agrégés toutes
-// générations confondues (pas demandé de les scinder par génération). Le
-// mode Custom n'a pas de compartiment détaillé, juste un nombre de parties.
+// 16 compartiments (Classique/Chronologique/Numéro/Suite × 4 niveaux),
+// agrégés toutes générations confondues (pas demandé de les scinder par
+// génération). Le mode Custom n'a pas de compartiment détaillé, juste un
+// nombre de parties.
 // `pokemonFound` est un compteur global (toutes parties, tous modes) du
 // nombre de fois où chaque Pokémon a été découvert.
 const STATS_KEY = "pokelist-quiz-stats";
@@ -19,7 +20,7 @@ function emptyStatsBucket() {
 
 function defaultStats() {
   const modes = {};
-  for (const mode of ["fill", "ordered"]) {
+  for (const mode of ["fill", "ordered", "number", "sequence"]) {
     for (const difficulty of STATS_DIFFICULTIES) {
       modes[`${mode}:${difficulty}`] = emptyStatsBucket();
     }
@@ -123,6 +124,8 @@ function renderStatsModal() {
   statsContentEl.innerHTML = `
     ${statsSectionHtml("fill", "quiz.modeFill")}
     ${statsSectionHtml("ordered", "quiz.modeOrdered")}
+    ${statsSectionHtml("number", "quiz.modeNumber")}
+    ${statsSectionHtml("sequence", "quiz.modeSequence")}
     <div class="settings-section">
       <h3>${t("quiz.presetCustom")}</h3>
       <p class="stats-custom-line">${t("statsModal.customGamesPlayed", { count: quizStats.custom.gamesPlayed })}</p>

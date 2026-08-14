@@ -110,6 +110,14 @@
               <span data-i18n="quiz.modeOrdered">🔢 Chronologique</span>
               <span class="settings-option-sub" data-i18n="quiz.modeOrderedSub">Du plus petit numéro au plus grand</span>
             </button>
+            <button class="settings-option settings-option-stacked" data-mode="number">
+              <span data-i18n="quiz.modeNumber">#️⃣ Numéro</span>
+              <span class="settings-option-sub" data-i18n="quiz.modeNumberSub">Devine le nom à partir du numéro</span>
+            </button>
+            <button class="settings-option settings-option-stacked" data-mode="sequence">
+              <span data-i18n="quiz.modeSequence">🧩 Suite</span>
+              <span class="settings-option-sub" data-i18n="quiz.modeSequenceSub">Devine les prochains de la séquence</span>
+            </button>
             <button class="settings-option settings-option-stacked" data-mode="custom">
               <span data-i18n="quiz.presetCustom">🛠️ Custom</span>
               <span class="settings-option-sub" data-i18n="quiz.modeCustomSub">Réglages manuels</span>
@@ -132,6 +140,26 @@
           <div class="settings-options">
             <button class="settings-option" data-difficulty="easy" data-i18n="quiz.presetEasy">😌 Facile</button>
             <button class="settings-option active" data-difficulty="normal" data-i18n="quiz.presetNormal">🙂 Normal</button>
+            <button class="settings-option" data-difficulty="hard" data-i18n="quiz.presetHard">😰 Difficile</button>
+            <button class="settings-option" data-difficulty="veryHard" data-i18n="quiz.presetVeryHard">💀 Très difficile</button>
+          </div>
+        </div>
+
+        <div class="settings-section" id="quiz-difficulty-number" hidden>
+          <h3 data-i18n="quiz.difficultyTitle">Difficulté</h3>
+          <div class="settings-options">
+            <button class="settings-option active" data-difficulty="easy" data-i18n="quiz.presetEasy">😌 Facile</button>
+            <button class="settings-option" data-difficulty="normal" data-i18n="quiz.presetNormal">🙂 Normal</button>
+            <button class="settings-option" data-difficulty="hard" data-i18n="quiz.presetHard">😰 Difficile</button>
+            <button class="settings-option" data-difficulty="veryHard" data-i18n="quiz.presetVeryHard">💀 Très difficile</button>
+          </div>
+        </div>
+
+        <div class="settings-section" id="quiz-difficulty-sequence" hidden>
+          <h3 data-i18n="quiz.difficultyTitle">Difficulté</h3>
+          <div class="settings-options">
+            <button class="settings-option active" data-difficulty="easy" data-i18n="quiz.presetEasy">😌 Facile</button>
+            <button class="settings-option" data-difficulty="normal" data-i18n="quiz.presetNormal">🙂 Normal</button>
             <button class="settings-option" data-difficulty="hard" data-i18n="quiz.presetHard">😰 Difficile</button>
             <button class="settings-option" data-difficulty="veryHard" data-i18n="quiz.presetVeryHard">💀 Très difficile</button>
           </div>
@@ -225,6 +253,8 @@
           </div>
 
           <div id="quiz-next-hint" class="quiz-next-hint" hidden></div>
+          <div id="quiz-target-card" class="quiz-target-card" hidden></div>
+          <div id="quiz-seq-strip" class="quiz-seq-strip" hidden></div>
 
           <form id="quiz-form" class="toolbar">
             <span id="quiz-timer" class="quiz-timer">15:00</span>

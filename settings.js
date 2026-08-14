@@ -98,6 +98,9 @@ function refreshLanguageDependentViews() {
   updateProgress();
   if (quizPhase === "playing") {
     if (quizShowGrid) renderQuizPlaying();
+    renderNextHint();
+    renderQuizTarget();
+    renderSeqStrip();
     updateQuizProgress();
   }
   if (quizPhase === "recap") renderRecap();
