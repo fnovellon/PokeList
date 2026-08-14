@@ -134,8 +134,13 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   existant (tirage Shiny, toast, succès, stats, permadeath/séquentiel) plutôt
   que de dupliquer la logique. Volontairement limité aux matchs exacts (pas
   de fuzzy) : un match approximatif pourrait valider prématurément pendant
-  que l'utilisateur tape encore un nom plus long. Toujours actif, pas de
-  réglage dédié (comportement jugé strictement additif et à faible risque).
+  que l'utilisateur tape encore un nom plus long. Piloté par le réglage
+  global "🎤 Validation STT" (`settings.sttAutoSubmit`, panneau Réglages,
+  section Quiz) — **désactivé par défaut** (l'utilisateur avait d'abord
+  demandé un comportement toujours actif, puis est revenu dessus pour en
+  faire un opt-in). `scheduleAutoSubmitCheck()` vérifie `settings.sttAutoSubmit`
+  à la fois avant de programmer le debounce et dans son callback (au cas où
+  le réglage serait désactivé pendant la fenêtre de 500ms).
 - **Anti-triche** : pendant une partie (`quizPhase === "playing"`), les
   boutons "Liste" et "Shiny Dex" du header sont désactivés (`setQuizNavLock`
   dans `app.js`, appelé depuis `startQuiz`/`endQuiz` dans `quiz.js`) — les
@@ -357,3 +362,6 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
 18. Barre du quiz (progression, timer, champ de saisie, boutons) n'est plus
     collante : elle scrolle avec la page au lieu de rester fixée en haut,
     surtout pour libérer de l'espace sur mobile avec le clavier virtuel.
+19. Validation automatique passée derrière un réglage global "🎤 Validation
+    STT" (panneau Réglages, désactivé par défaut) au lieu d'être toujours
+    active.

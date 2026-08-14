@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS = {
   theme: "auto", // auto | light | dark
   cardSize: "medium", // small | medium | large
   animated: true,
+  sttAutoSubmit: false,
 };
 
 function loadSettings() {
@@ -77,6 +78,7 @@ const settingsCloseBtn = document.getElementById("settings-close");
 // (choix du temps) qui ne doivent pas être pilotés par cette logique.
 const settingsOptionBtns = document.querySelectorAll("#settings-overlay .settings-option");
 const animatedToggle = document.getElementById("setting-animated");
+const sttAutoSubmitToggle = document.getElementById("setting-stt-autosubmit");
 
 function refreshSpriteDependentViews() {
   renderList();
@@ -109,6 +111,7 @@ function updateSettingsUI() {
     btn.classList.toggle("active", settings[btn.dataset.setting] === btn.dataset.value);
   });
   animatedToggle.checked = settings.animated;
+  sttAutoSubmitToggle.checked = settings.sttAutoSubmit;
 }
 
 function openSettings() {
@@ -151,6 +154,11 @@ animatedToggle.addEventListener("change", () => {
   settings.animated = animatedToggle.checked;
   saveSettings();
   refreshSpriteDependentViews();
+});
+
+sttAutoSubmitToggle.addEventListener("change", () => {
+  settings.sttAutoSubmit = sttAutoSubmitToggle.checked;
+  saveSettings();
 });
 
 // Efface tout le stockage local de l'app (progression, réglages, succès,
