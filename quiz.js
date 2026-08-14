@@ -47,7 +47,6 @@ const GAME_MODES = {
 
 const quizListEl = document.getElementById("quiz-list");
 const quizFoundChipsEl = document.getElementById("quiz-found-chips");
-const quizStickyBarEl = document.getElementById("quiz-sticky-bar");
 const quizFormEl = document.getElementById("quiz-form");
 const quizInputEl = document.getElementById("quiz-input");
 const quizInputClearBtn = document.getElementById("quiz-input-clear");

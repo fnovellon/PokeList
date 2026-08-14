@@ -142,15 +142,13 @@ function celebrateConfetti() {
 
 const headerEl = document.querySelector(".app-header");
 
-// Hauteur cumulée des barres collantes (en-tête + barre du quiz), utilisée pour
-// que le scroll automatique vers un Pokémon révélé ne le cache pas derrière elles.
+// Hauteur de l'en-tête collant, utilisée pour que le scroll automatique vers
+// un Pokémon révélé ne le cache pas derrière lui (la barre du quiz n'est plus
+// collante, elle scrolle avec la page).
 function updateStickyOffsets() {
   const headerHeight = headerEl.offsetHeight;
   document.documentElement.style.setProperty("--header-height", `${headerHeight}px`);
-  document.documentElement.style.setProperty(
-    "--quiz-sticky-offset",
-    `${headerHeight + quizStickyBarEl.offsetHeight}px`
-  );
+  document.documentElement.style.setProperty("--quiz-sticky-offset", `${headerHeight}px`);
 }
 
 updateStickyOffsets();

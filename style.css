@@ -498,10 +498,6 @@ main {
 }
 
 .quiz-sticky-bar {
-  position: sticky;
-  top: var(--header-height, 0px);
-  z-index: 5;
-  background: var(--bg);
   padding-top: 0.75rem;
 }
 

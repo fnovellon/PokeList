@@ -91,9 +91,16 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   invalide (Pokémon inexistant, ou hors-ordre en mode séquentiel). La classe
   `shake` est retirée sur `animationend`, sinon elle rejouait au réaffichage
   de l'input (ex: en rejouant juste après une défaite).
-- **Barre sticky** : barre de progression + compteur "trouvés / total", timer,
-  champ de saisie et boutons Valider/Abandonner, le tout fixé en haut de
-  l'écran pendant le scroll de la grille.
+- **Barre du quiz** (`#quiz-sticky-bar`) : barre de progression + compteur
+  "trouvés / total", timer, champ de saisie et boutons Valider/Abandonner.
+  N'est **plus** collante (`position: sticky` retiré) : elle scrolle avec la
+  page comme le reste, à la demande de l'utilisateur (surtout gênant sur
+  mobile, le clavier virtuel + une barre fixe en plus de l'en-tête laissait
+  trop peu d'espace pour voir la grille). Seul l'en-tête (`.app-header`) reste
+  collant. Le calcul de `--quiz-sticky-offset` (scroll-margin-top des cartes
+  pour ne pas les cacher sous l'en-tête lors du scroll auto vers un Pokémon
+  trouvé, dans `app.js` `updateStickyOffsets()`) ne tient plus compte que de
+  la hauteur de l'en-tête.
 - **Partage de résultat** : copie le texte (avec le lien) dans le
   presse-papiers directement, sans passer par le menu de partage natif de la
   plateforme (`navigator.share` volontairement pas utilisé). Image PNG
@@ -347,3 +354,6 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     la dictée vocale du clavier mobile (pas d'intégration Web Speech API).
 17. Bouton "Commencer" déplacé au-dessus des réglages sur l'écran de
     configuration du Quiz (juste sous la bande de succès).
+18. Barre du quiz (progression, timer, champ de saisie, boutons) n'est plus
+    collante : elle scrolle avec la page au lieu de rester fixée en haut,
+    surtout pour libérer de l'espace sur mobile avec le clavier virtuel.
