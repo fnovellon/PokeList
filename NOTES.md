@@ -76,6 +76,10 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
   - Les succès liés à la difficulté (`easy`/`normal`/`hard`) ne sont attribués
     que via un mode nommé, jamais en Custom, même si ses réglages reproduisent
     exactement un niveau (comportement hérité de l'ancien système de presets).
+- **Écran de configuration** : le bouton "▶️ Commencer" (`#quiz-start-btn`)
+  est placé juste sous la bande de succès, **avant** tous les réglages
+  (génération, mode, difficulté, panneau Custom) plutôt qu'en bas de la
+  page — permet de lancer une partie sans avoir à scroller tout le panneau.
 - **Cartes du Quiz** : taille fixe par palier (`small`/`medium`/`large`, cf.
   réglage "Taille des cartes"), sprite + nom en haut, badges de types en bas
   à gauche, numéro flottant en haut à droite. Animation de révélation
@@ -341,3 +345,5 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
 16. Validation automatique de la réponse (Quiz) : dès qu'un match exact est
     tapé/dicté, soumission automatique après un court debounce — pensé pour
     la dictée vocale du clavier mobile (pas d'intégration Web Speech API).
+17. Bouton "Commencer" déplacé au-dessus des réglages sur l'écran de
+    configuration du Quiz (juste sous la bande de succès).
