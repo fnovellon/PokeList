@@ -120,6 +120,13 @@ let quizMode = "fill"; // "fill" | "ordered" | "number" | "sequence" | "custom"
 let quizDifficulty = "easy"; // "easy" | "normal" | "hard" | "veryHard" ; sans effet si quizMode === "custom"
 let quizCurrentTarget = null; // mode "number" : Pokémon actuellement à deviner
 let quizSeqContext = 0; // mode "sequence" : nombre de Pokémon montrés comme repère
+// mode "sequence" : ordre de jeu de la partie en cours — le roster de la
+// génération, mais partant d'un point de départ tiré au hasard entre #1 et
+// le dernier numéro, puis repris depuis le début (numéro le plus bas) une
+// fois arrivé au bout, pour ne pas toujours commencer au tout premier
+// Pokémon. `quizFound.size` sert d'index dans CE tableau, pas dans le
+// roster brut.
+let quizSeqOrder = [];
 let quizGeneration = 1;
 let quizMinutesUsed = 0;
 let quizStartedAt = null;
@@ -187,14 +194,21 @@ function findClosestGuessMatch(rawGuess, candidates) {
 
 // Seule(s) bonne(s) réponse(s) valable(s) à l'instant T, selon le mode :
 // - "number" : uniquement la cible aléatoire active (quizCurrentTarget).
-// - Ordre imposé ("ordered"/"sequence", ou Custom + "Ordre croissant") :
-//   uniquement le prochain non trouvé (plus petit numéro du roster).
+// - "sequence" : uniquement le prochain de l'ordre de la partie
+//   (quizSeqOrder), qui part d'un point aléatoire et boucle — pas
+//   forcément le plus petit numéro non trouvé du roster.
+// - "ordered" (ou Custom + "Ordre croissant") : uniquement le prochain non
+//   trouvé (plus petit numéro du roster).
 // - Sinon (fill/Custom libre) : n'importe quel Pokémon non trouvé.
 // Utilisée à la fois par le handler `submit` et par la validation
 // automatique (scheduleAutoSubmitCheck), pour ne jamais diverger entre les
 // deux chemins de validation.
 function quizActiveCandidates(unfound) {
   if (quizMode === "number") return quizCurrentTarget ? [quizCurrentTarget] : [];
+  if (quizMode === "sequence") {
+    const next = quizSeqOrder[quizFound.size];
+    return next ? [next] : [];
+  }
   if (quizSequential) return unfound[0] ? [unfound[0]] : [];
   return unfound;
 }
@@ -302,10 +316,9 @@ function renderSeqStrip() {
     return;
   }
 
-  const roster = quizRoster();
   const confirmedCount = quizFound.size;
-  const shown = roster.slice(Math.max(0, confirmedCount - quizSeqContext), confirmedCount);
-  const next = roster[confirmedCount];
+  const shown = quizSeqOrder.slice(Math.max(0, confirmedCount - quizSeqContext), confirmedCount);
+  const next = quizSeqOrder[confirmedCount];
 
   quizSeqStripEl.hidden = false;
   quizSeqStripEl.innerHTML = `
@@ -607,11 +620,16 @@ function startQuiz() {
   setQuizNavLock(true);
   recordGameStart(quizMode, quizMode === "custom" ? null : quizDifficulty);
 
-  // Mode "Suite" : les `quizSeqContext` premiers Pokémon du roster sont
-  // donnés gratuitement (pas de recordPokemonFound/quizFindLog, ce n'est pas
-  // une trouvaille) pour amorcer la fenêtre de contexte.
+  // Mode "Suite" : point de départ tiré au hasard (pas toujours Bulbasaur),
+  // le reste de la partie continue en boucle jusqu'au bout du roster. Les
+  // `quizSeqContext` premiers de cet ordre sont donnés gratuitement (pas de
+  // recordPokemonFound/quizFindLog, ce n'est pas une trouvaille) pour amorcer
+  // la fenêtre de contexte.
   if (quizMode === "sequence") {
-    quizRoster().slice(0, quizSeqContext).forEach((p) => quizFound.add(p.id));
+    const roster = quizRoster();
+    const start = Math.floor(Math.random() * roster.length);
+    quizSeqOrder = roster.slice(start).concat(roster.slice(0, start));
+    quizSeqOrder.slice(0, quizSeqContext).forEach((p) => quizFound.add(p.id));
   }
   // Mode "Numéro" : tire la première cible aléatoire de la partie.
   if (quizMode === "number") pickNumberTarget();
@@ -940,7 +958,9 @@ quizFormEl.addEventListener("submit", (event) => {
   // deviner un autre Pokémon valide mais pas encore "d'actualité" est
   // traité comme hors d'ordre. En mode "Numéro", seule la cible active
   // compte (voir quizActiveCandidates).
-  const nextRequired = quizSequential ? unfound[0] ?? null : null;
+  const nextRequired = quizMode === "sequence"
+    ? quizSeqOrder[quizFound.size] ?? null
+    : quizSequential ? unfound[0] ?? null : null;
   const match = findClosestGuessMatch(guess, quizActiveCandidates(unfound));
 
   if (match) {
@@ -1274,12 +1294,16 @@ window.debug.fillQuiz = function () {
 
   const roster = quizRoster();
   const stillUnfound = roster.filter((p) => !quizFound.has(p.id));
-  // En mode séquentiel (Chronologique/Suite), impossible de "sauter" un
-  // Pokémon au milieu : seul le tout dernier du roster peut rester retenu.
-  // Sinon (Classique/Numéro/Custom libre), n'importe quel non-trouvé convient
-  // — le premier disponible, qui peut différer de roster[0] si celui-ci est
-  // déjà acquis (ex: Suite avec un contexte de départ non nul).
-  const keepHidden = (quizSequential ? stillUnfound[stillUnfound.length - 1] : stillUnfound[0])?.id;
+  // En mode séquentiel, impossible de "sauter" un Pokémon au milieu : seul
+  // le tout dernier de l'ordre requis peut rester retenu — le dernier de
+  // quizSeqOrder en mode "Suite" (qui part d'un point aléatoire et boucle),
+  // sinon le plus grand numéro du roster en mode "Chronologique". Sinon
+  // (Classique/Numéro/Custom libre), n'importe quel non-trouvé convient — le
+  // premier disponible, qui peut différer de roster[0] si celui-ci est déjà
+  // acquis (ex: Suite avec un contexte de départ non nul).
+  const keepHidden = quizMode === "sequence"
+    ? quizSeqOrder[quizSeqOrder.length - 1]?.id
+    : (quizSequential ? stillUnfound[stillUnfound.length - 1] : stillUnfound[0])?.id;
   roster.forEach((p) => {
     if (p.id === keepHidden || quizFound.has(p.id)) return;
     quizFound.add(p.id);

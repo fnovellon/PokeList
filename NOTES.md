@@ -70,21 +70,28 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
     exacte. Pas de notion d'ordre (`sequential: false`) : une mauvaise
     réponse tombe toujours dans le feedback générique "faux", jamais
     "hors d'ordre".
-  - **"🧩 Suite"** (`mode: "sequence"`) : réutilise **entièrement** la
-    mécanique séquentielle de "Chronologique" (`sequential: true`, même
-    "prochain non trouvé = plus petit numéro"), avec un seul ajout : au
-    lancement, les `context` premiers Pokémon du roster sont donnés
-    gratuitement (`quizSeqContext`, ajoutés à `quizFound` sans passer par
-    `recordPokemonFound`/`quizFindLog` — ce n'est pas une trouvaille), et un
-    widget (`#quiz-seq-strip` / `renderSeqStrip()`) affiche en continu une
+  - **"🧩 Suite"** (`mode: "sequence"`) : même mécanique "un seul prochain
+    valide à la fois" que "Chronologique" (`sequential: true`, feedback
+    "hors d'ordre" partagé), mais l'ordre de jeu **part d'un point aléatoire
+    du roster et boucle** — pas toujours Bulbasaur (`quizSeqOrder`, calculé
+    au lancement : `roster.slice(start).concat(roster.slice(0, start))`
+    avec `start` tiré au hasard ; `quizFound.size` sert d'index dans **ce**
+    tableau, pas dans le roster brut — `quizActiveCandidates()`,
+    `renderSeqStrip()` et le `keepHidden` de `debug.fillQuiz()` lisent tous
+    `quizSeqOrder`, jamais `unfound[0]`/le roster directement, pour rester
+    cohérents avec la rotation). Les `context` premiers de cet ordre sont
+    donnés gratuitement (`quizSeqContext`, ajoutés à `quizFound` sans passer
+    par `recordPokemonFound`/`quizFindLog` — ce n'est pas une trouvaille), et
+    un widget (`#quiz-seq-strip` / `renderSeqStrip()`) affiche en continu une
     fenêtre glissante : les `context` derniers Pokémon confirmés (donnés ou
-    devinés) + la prochaine cible à deviner. Comme le roster est trié par
-    numéro, `quizFound.size` sert directement d'index dans le roster pour
-    calculer cette fenêtre — aucun état supplémentaire nécessaire. Le
-    paramètre de difficulté est `context` : Facile = 3 (+ aides sur la
-    cible) ; Normal = 2 ; Difficile = 1 + mort subite ; Très difficile = 0
-    (aucun repère donné, identique en pratique à "Chronologique"/Très
-    difficile) + orthographe exacte + mort subite.
+    devinés) + la prochaine cible à deviner — au passage du dernier numéro
+    du roster au premier (retour à #001), la fenêtre l'affiche normalement,
+    sans traitement spécial. Le paramètre de difficulté est `context` :
+    Facile = 3 (+ aides sur la cible) ; Normal = 2 ; Difficile = 1 + mort
+    subite ; Très difficile = 0 (aucun repère donné) + orthographe exacte +
+    mort subite. Le point de départ n'est pas encodé dans le lien de
+    partage (comme la cible aléatoire du mode "Numéro", chaque personne qui
+    ouvre le lien tire son propre point de départ).
   - **"🛠️ Custom"** : panneau manuel complet (temps, aides, indice sur le
     prochain, ordre croissant, mort subite, orthographe exacte). Le panneau
     reste **toujours visible** (grisé + pré-rempli avec l'aperçu du niveau
@@ -416,3 +423,7 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     deviner, réutilise la mécanique séquentielle existante). Lien de partage
     étendu pour encoder `mode`/`difficulty` explicitement, la déduction par
     réglages seule devenant ambiguë avec 4 modes nommés.
+21. Mode "Suite" : le point de départ de la séquence est désormais tiré au
+    hasard entre #001 et le dernier numéro du roster (au lieu de toujours
+    commencer à Bulbasaur), avec bouclage une fois arrivé au bout
+    (`quizSeqOrder`).
