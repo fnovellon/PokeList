@@ -435,3 +435,13 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     déclaré dans `app.js`). Si le compromis mobile (clavier virtuel qui mange
     l'espace) redevient un problème, il faudra trouver un autre équilibre
     plutôt que de simplement re-basculer entre les deux options.
+23. Anti-overlay des gestionnaires de mots de passe (Dashlane notamment) sur
+    les champs `#search` et `#quiz-input` : ajout de `data-form-type="other"`
+    (sur les inputs et sur `#quiz-form`), `data-lpignore="true"`,
+    `data-1p-ignore`, `data-bwignore`, en plus de `autocomplete="off"` déjà
+    présent sur `#quiz-input` (et ajouté sur `#search`). Ce sont les attributs
+    documentés respectés par Dashlane/LastPass/1Password/Bitwarden pour ne pas
+    injecter leur icône d'auto-remplissage sur un champ. Pas garanti à 100%
+    (dépend de l'extension et de sa version, certaines ignorent ces
+    attributs), mais c'est le levier standard côté page — le reste se règle
+    dans les réglages de l'extension elle-même.

@@ -63,7 +63,20 @@
       </div>
 
       <div class="toolbar">
-        <input type="text" id="search" class="text-input" data-i18n-placeholder="list.searchPlaceholder" placeholder="Rechercher un Pokémon (nom ou numéro)..." />
+        <input
+          type="text"
+          id="search"
+          class="text-input"
+          data-i18n-placeholder="list.searchPlaceholder"
+          placeholder="Rechercher un Pokémon (nom ou numéro)..."
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore
+          data-bwignore
+        />
         <div class="toolbar-buttons">
           <button id="check-all" data-i18n="list.checkAll">Tout cocher</button>
           <button id="uncheck-all" data-i18n="list.uncheckAll">Tout décocher</button>
@@ -256,7 +269,7 @@
           <div id="quiz-target-card" class="quiz-target-card" hidden></div>
           <div id="quiz-seq-strip" class="quiz-seq-strip" hidden></div>
 
-          <form id="quiz-form" class="toolbar">
+          <form id="quiz-form" class="toolbar" data-form-type="other">
             <span id="quiz-timer" class="quiz-timer">15:00</span>
             <div class="input-clear-wrap">
               <input
@@ -268,6 +281,10 @@
                 autocomplete="off"
                 autocapitalize="off"
                 spellcheck="false"
+                data-form-type="other"
+                data-lpignore="true"
+                data-1p-ignore
+                data-bwignore
               />
               <button
                 type="button"
