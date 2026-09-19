@@ -337,11 +337,17 @@ de l'app, pour ne rien perdre entre deux sessions de travail. À tenir à jour
 ## Convention à suivre pour la suite
 
 1. Implémenter le changement.
-2. Tester visuellement (voir méthode ci-dessous) avant de pousser.
-3. Bumper `version.js`.
-4. Si un fichier listé dans `SHELL_ASSETS` (`sw.js`) a changé : bumper aussi
+2. Lancer `npm test` (suite Playwright, voir section "Tests automatisés"
+   plus bas) — attrape les régressions de comportement (barre collante,
+   matching, modes de Quiz, réglages...) sans repasser à la main dessus.
+3. Tester visuellement (voir méthode ci-dessous) avant de pousser, surtout
+   pour ce que la suite ne couvre pas encore (rendu visuel fin, animations).
+4. Bumper `version.js`.
+5. Si un fichier listé dans `SHELL_ASSETS` (`sw.js`) a changé : bumper aussi
    `SHELL_CACHE`.
-5. Commit + push sur la branche de travail.
+6. Commit + push sur la branche de travail. Si un changement de comportement
+   n'est couvert par aucun test existant et risque de régresser silencieusement
+   (comme la barre collante, cf. point 24 de l'historique), ajouter un test.
 
 ### Méthode de test visuel utilisée en session
 
@@ -445,3 +451,48 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     (dépend de l'extension et de sa version, certaines ignorent ces
     attributs), mais c'est le levier standard côté page — le reste se règle
     dans les réglages de l'extension elle-même.
+24. **Ajout d'une suite de tests automatisés (Playwright)**, sur demande
+    explicite pour attraper les régressions entre deux sessions (la barre
+    collante du Quiz avait déjà basculé deux fois dans un sens puis dans
+    l'autre sans test pour le remarquer, cf. points 19/22). Détails :
+    - `package.json` + `playwright.config.js` : un seul devDependency
+      (`@playwright/test`), pas de build. `tests/server.js` sert le repo tel
+      quel (petit serveur statique Node sans dépendance) sur `:4173`,
+      démarré automatiquement par Playwright (`webServer`).
+    - `tests/fixtures.js` : fixture `page` commune à toute la suite —
+      bloque les requêtes réseau externes (sprites PokeAPI,
+      `raw.githubusercontent.com`, GoatCounter) pour des tests rapides et
+      utilisables hors-ligne/en CI sans accès sortant, et **neutralise
+      `Math.random` (fixé à 0.5)** pour rendre déterministe le tirage Shiny
+      (1% de chance par bonne réponse, cf. `shiny.js`) qui rendait les tests
+      correctement écrits aléatoirement flaky (repéré via
+      `--repeat-each=3`, à refaire après toute modif touchant le timing/les
+      tirages aléatoires). Expose aussi `gotoFresh()` (localStorage vidé à
+      chaque test, isolation obligatoire) et `startQuiz()`/`submitGuess()`.
+    - Suite organisée par domaine : `list.spec.js`, `quiz-setup.spec.js`,
+      `quiz-play.spec.js`, `quiz-modes.spec.js` (Numéro/Suite/Hardcore/Un
+      seul essai), `quiz-sticky-bar.spec.js` (régression dédiée à la barre
+      collante, épingle explicitement le comportement actuel),
+      `settings.spec.js` (dont régression Dashlane), `matching.spec.js`
+      (fonctions pures de `matching.js`, dont la régression Nidoran/
+      Nidorina/Nidorino), `achievements-shiny.spec.js`. 37 tests au total.
+    - **Piège rencontré en écrivant les tests** : les checkboxes
+      (`.pokemon-checkbox`, `#setting-stt-autosubmit`) sont visuellement
+      recouvertes par leur `<label>`/`.switch` (UI custom) — `page.check()`
+      timeout car Playwright refuse de cliquer un élément masqué par un
+      autre. Il faut cliquer le `<label>` associé (`label[for="pokemon-1"]`,
+      `label:has(#setting-stt-autosubmit)`), pas la checkbox elle-même.
+    - **Autre piège** : `quizCurrentTarget` (mode Numéro) et les éléments de
+      `quizSeqOrder` (mode Suite) sont les **objets Pokémon eux-mêmes**, pas
+      des ids — contrairement à `quizFound` (un `Set` d'ids). Et la
+      difficulté "Facile"/"Normal" du mode Suite pré-remplit `quizFound`
+      avec `context` Pokémon gratuits au démarrage (3/2) : ne jamais
+      supposer un compteur à 0 juste après `startQuiz()` sur ce mode, lire
+      l'état réel via `page.evaluate()` à la place.
+    - `.github/workflows/tests.yml` : lance `npm test` sur chaque push/PR
+      (installe Playwright + Chromium via `--with-deps`, upload le rapport
+      HTML en artifact si échec).
+    - Pour lancer en local : `npm install` puis `npx playwright install
+      --with-deps chromium` (une fois), puis `npm test` (`npm run
+      test:headed` pour voir le navigateur, `npm run test:ui` pour le mode
+      interactif).
