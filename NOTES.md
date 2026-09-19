@@ -427,3 +427,11 @@ Utile pour naviguer/cliquer dans l'app, lire des valeurs calculées
     hasard entre #001 et le dernier numéro du roster (au lieu de toujours
     commencer à Bulbasaur), avec bouclage une fois arrivé au bout
     (`quizSeqOrder`).
+22. Retour en arrière sur la session 4 (point 8a82a17) : la barre du Quiz
+    (progression, timer, input, boutons) est **de nouveau collante** en haut
+    de l'écran pendant le scroll de la grille, sur demande explicite. Restauré
+    `position: sticky` sur `.quiz-sticky-bar` et le calcul JS
+    (`--quiz-sticky-offset` incluant à nouveau `quizStickyBarEl.offsetHeight`,
+    déclaré dans `app.js`). Si le compromis mobile (clavier virtuel qui mange
+    l'espace) redevient un problème, il faudra trouver un autre équilibre
+    plutôt que de simplement re-basculer entre les deux options.
